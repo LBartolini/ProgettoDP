@@ -1,8 +1,8 @@
 services:
   orchestrator:
-    build: orchestrator
-    volumes:
-      - /proto:/app/proto
+    build:
+      context: .
+      dockerfile: orchestrator/Dockerfile
     ports:
       - 5000:8080
     expose:

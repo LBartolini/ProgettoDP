@@ -1,12 +1,16 @@
 services:
   auth1:
-    build: auth
+    build:
+      context: .
+      dockerfile: auth/Dockerfile
     expose:
       - "3000"
     networks:
       - "net"
   auth2:
-    build: auth
+    build:
+      context: .
+      dockerfile: auth/Dockerfile
     expose:
       - "3000"
     networks:

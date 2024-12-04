@@ -1,12 +1,16 @@
 services:
   leaderboard1:
-    build: leaderboard
+    build:
+      context: .
+      dockerfile: leaderboard/Dockerfile
     expose:
       - "3000"
     networks:
       - "net"
   leaderboard2:
-    build: leaderboard
+    build:
+      context: .
+      dockerfile: leaderboard/Dockerfile
     expose:
       - "3000"
     networks:

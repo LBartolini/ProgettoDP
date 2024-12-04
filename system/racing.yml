@@ -1,12 +1,16 @@
 services:
   racing1:
-    build: racing
+    build:
+      context: .
+      dockerfile: racing/Dockerfile
     expose:
       - "3000"
     networks:
       - "net"
   racing2:
-    build: racing
+    build:
+      context: .
+      dockerfile: racing/Dockerfile
     expose:
       - "3000"
     networks:
