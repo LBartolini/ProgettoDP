@@ -1,0 +1,17 @@
+services:
+  leaderboard1:
+    build: leaderboard
+    expose:
+      - "3000"
+    networks:
+      - "net"
+  leaderboard2:
+    build: leaderboard
+    expose:
+      - "3000"
+    networks:
+      - "net"
+
+networks:
+  net:
+    name: net

@@ -1,0 +1,17 @@
+services:
+  auth1:
+    build: auth
+    expose:
+      - "3000"
+    networks:
+      - "net"
+  auth2:
+    build: auth
+    expose:
+      - "3000"
+    networks:
+      - "net"
+
+networks:
+  net:
+    name: net

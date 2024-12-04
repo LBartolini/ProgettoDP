@@ -1,0 +1,17 @@
+services:
+  racing1:
+    build: racing
+    expose:
+      - "3000"
+    networks:
+      - "net"
+  racing2:
+    build: racing
+    expose:
+      - "3000"
+    networks:
+      - "net"
+
+networks:
+  net:
+    name: net

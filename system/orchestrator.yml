@@ -1,0 +1,15 @@
+services:
+  orchestrator:
+    build: orchestrator
+    volumes:
+      - /proto:/app/proto
+    ports:
+      - 5000:8080
+    expose:
+      - "3000"
+    networks:
+      - "net"
+
+networks:
+  net:
+    name: net

@@ -1,0 +1,17 @@
+services:
+  garage1:
+    build: garage
+    expose:
+      - "3000"
+    networks:
+      - "net"
+  garage2:
+    build: garage
+    expose:
+      - "3000"
+    networks:
+      - "net"
+
+networks:
+  net:
+    name: net
