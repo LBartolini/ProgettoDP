@@ -1,16 +1,8 @@
 services:
-  garage1:
-    build:
-      context: .
-      dockerfile: garage/Dockerfile
-    expose:
-      - "3000"
-    networks:
-      - "net"
-  garage2:
-    build:
-      context: .
-      dockerfile: garage/Dockerfile
+  garage:
+    build: garage
+    depends_on:
+      - orchestrator
     expose:
       - "3000"
     networks:

@@ -14,7 +14,7 @@ ifneq ($(service),)
 	services = $(service)
 endif
 
-build:
+build: update_proto
 	docker compose $(foreach module,$(system_modules),-f system/$(module).yml) build $(services)
 
 up:
@@ -28,4 +28,16 @@ down:
 
 remove:
 	docker compose $(foreach module,$(system_modules),-f system/$(module).yml) rm -s $(services)
+
+update_proto: mkdir_proto compile_protobuf
+	$(foreach module,$(system_modules),cp -r system/proto/. system/$(module)/proto ;)
+
+compile_protobuf: pull_compiler
+	docker run -v $(shell pwd)/system/proto:/defs namely/protoc-all -f service.proto -l go -o . --go-source-relative  
+
+pull_compiler:
+	docker pull namely/protoc-all
+
+mkdir_proto:
+	mkdir -p $(foreach module,$(system_modules), system/$(module)/proto)
 

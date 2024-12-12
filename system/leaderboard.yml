@@ -1,16 +1,8 @@
 services:
-  leaderboard1:
-    build:
-      context: .
-      dockerfile: leaderboard/Dockerfile
-    expose:
-      - "3000"
-    networks:
-      - "net"
-  leaderboard2:
-    build:
-      context: .
-      dockerfile: leaderboard/Dockerfile
+  leaderboard:
+    build: leaderboard
+    depends_on:
+      - orchestrator
     expose:
       - "3000"
     networks:

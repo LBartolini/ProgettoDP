@@ -1,12 +1,11 @@
 services:
   orchestrator:
-    build:
-      context: .
-      dockerfile: orchestrator/Dockerfile
+    build: orchestrator
+    restart: always
     ports:
       - 5000:8080
     expose:
-      - "3000"
+      - "50051"
     networks:
       - "net"
 

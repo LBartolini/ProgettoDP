@@ -1,16 +1,8 @@
 services:
-  auth1:
-    build:
-      context: .
-      dockerfile: auth/Dockerfile
-    expose:
-      - "3000"
-    networks:
-      - "net"
-  auth2:
-    build:
-      context: .
-      dockerfile: auth/Dockerfile
+  auth:
+    build: auth
+    depends_on:
+      - orchestrator
     expose:
       - "3000"
     networks:
