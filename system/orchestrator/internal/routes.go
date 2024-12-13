@@ -3,56 +3,97 @@ package internal
 import (
 	"net/http"
 
+	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
-type MyRoutes struct {
-	storage Storage
+func Authorized(c *gin.Context) {
+	session := sessions.Default(c)
+	user := session.Get("username")
+	if user == nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	c.Next()
 }
 
-func NewMyRoutes(storage Storage) *MyRoutes {
-	return &MyRoutes{storage}
+type MyRoutes struct {
+}
+
+func NewMyRoutes() *MyRoutes {
+	return &MyRoutes{}
+}
+
+func (r *MyRoutes) IndexRoute(c *gin.Context) {
+	session := sessions.Default(c)
+
+	count := 0
+	if session.Get("count") != nil {
+		count = session.Get("count").(int)
+	}
+
+	session.Set("count", count+1)
+	session.Save()
+
+	c.HTML(http.StatusOK, "index.html", gin.H{
+		"message": count,
+		"title":   "Welcome",
+	})
+}
+
+func (r *MyRoutes) LoginRoute(c *gin.Context) {
+	session := sessions.Default(c)
+
+	// TODO: Contact Auth Service to perform authentication
+	if 1 == 1 {
+		session.Set("username", "my_user")
+		session.Save()
+		c.Redirect(http.StatusSeeOther, "/private")
+		return
+	}
+
+	c.AbortWithStatus(http.StatusUnauthorized)
+}
+
+func (r *MyRoutes) LogoutRoute(c *gin.Context) {
+	session := sessions.Default(c)
+
+	session.Delete("username")
+	session.Save()
+
+	c.Redirect(http.StatusFound, "/")
 }
 
 func (r *MyRoutes) HomeRoute(c *gin.Context) {
+	session := sessions.Default(c)
 
-	c.HTML(200, "home.html", gin.H{
-		"message": "This is the Home",
+	count := 0
+	if session.Get("count") != nil {
+		count = session.Get("count").(int)
+	}
+
+	session.Set("count", count+1)
+	session.Save()
+
+	c.HTML(http.StatusOK, "index.html", gin.H{
+		"message": count,
 		"title":   "Home",
 	})
 }
 
-func (r *MyRoutes) InsertRecordRoute(c *gin.Context) {
-	c.HTML(200, "home.html", gin.H{
-		"message": "Inserting",
-		"title":   "Insert Record",
-	})
-}
+func (r *MyRoutes) GarageRoute(c *gin.Context) {
+	session := sessions.Default(c)
 
-func (r *MyRoutes) GetPatientRecordsRoute(c *gin.Context) {
-	records := r.storage.GetAllPatientRecords(c.Query("id"))
-
-	if records == nil {
-		c.AbortWithStatus(http.StatusNotFound)
-		return
+	count := 0
+	if session.Get("count") != nil {
+		count = session.Get("count").(int)
 	}
 
-	c.HTML(200, "home.html", gin.H{
-		"message": records,
-		"title":   "All Patient Records",
-	})
-}
+	session.Set("count", count+1)
+	session.Save()
 
-func (r *MyRoutes) GetRecordRoute(c *gin.Context) {
-	record := r.storage.GetRecord(c.Query("id"))
-
-	if record == nil {
-		c.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-
-	c.HTML(200, "home.html", gin.H{
-		"message": record,
-		"title":   "Single Record",
+	c.HTML(http.StatusOK, "index.html", gin.H{
+		"message": count,
+		"title":   "Home",
 	})
 }

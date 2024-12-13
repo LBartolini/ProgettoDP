@@ -1,0 +1,23 @@
+{{template "base.html" .}}
+{{define "header"}}
+<title>{{.title}}</title>
+{{end}}
+{{define "content"}}
+<h1>Home</h1>
+<p>This is the great content of the Home</p>
+<p>{{.message}}</p>
+<h1>Login</h1>
+    <form action="/login" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br><br>
+        <button type="submit">Login</button>
+    </form>
+<h1>Logout</h1>
+    <form action="/private/logout" method="POST">
+        <button type="submit">Logout</button>
+    </form>
+{{end}}
