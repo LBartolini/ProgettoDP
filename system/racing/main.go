@@ -26,7 +26,7 @@ import (
 	"log"
 	"net"
 
-	pb "orchestrator/proto"
+	pb "racing/proto"
 
 	"google.golang.org/grpc"
 )
@@ -46,7 +46,7 @@ func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloRe
 	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
 }
 
-func test_main() {
+func main() {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {

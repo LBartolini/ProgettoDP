@@ -1,12 +1,18 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"net"
 	"os"
 
 	"orchestrator/internal"
 
+	pb "orchestrator/proto"
+
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -16,7 +22,9 @@ func main() {
 	r.Use(sessions.Sessions("session", store))
 	r.LoadHTMLGlob("./templates/*")
 
-	routes := internal.NewMyRoutes()
+	orchestrator := internal.NewMyOrchestrator(internal.NewRandomLoadBalancer())
+	go startOrchestratorService(orchestrator)
+	routes := internal.NewMyRoutes(orchestrator)
 
 	r.GET("/", routes.IndexRoute)
 
@@ -31,4 +39,19 @@ func main() {
 	}
 
 	r.Run("0.0.0.0:8080")
+
+}
+
+func startOrchestratorService(orchestrator *internal.MyOrchestrator) {
+	log.Printf("Starting Orchestrator Service")
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("SERVICE_PORT")))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	pb.RegisterOrchestratorServer(s, orchestrator)
+	log.Printf("server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

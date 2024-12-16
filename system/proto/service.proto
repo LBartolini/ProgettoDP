@@ -16,20 +16,65 @@ syntax = "proto3";
 
 option go_package = "system/proto";
 
+import "google/protobuf/empty.proto";
+
 package proto;
 
-// The greeting service definition.
-service Greeter {
-  // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
+//////////////////////////////
+
+service StillAlive {
+  rpc StillAlive(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
-// The request message containing the user's name.
-message HelloRequest {
+//////////////////////////////
+
+service Orchestrator {
+  rpc RegisterService(RegisterServiceMessage) returns (google.protobuf.Empty) {}
+}
+
+message RegisterServiceMessage {
   string name = 1;
 }
 
-// The response message containing the greetings
-message HelloReply {
-  string message = 1;
+//////////////////////////////
+
+service Authentication {
+  rpc Login (PlayerCredentials) returns (LoginResult) {}
+  rpc Register (PlayerDetails) returns (RegisterResult) {}
+}
+
+message PlayerCredentials {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResult {
+  bool result = 1;
+}
+
+message PlayerDetails {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+  string phone = 4;
+}
+
+message RegisterResult {
+  bool result = 1;
+  int32 id = 2;
+}
+
+//////////////////////////////
+
+service Racing {
+}
+
+//////////////////////////////
+
+service Leaderboard {
+}
+
+//////////////////////////////
+
+service Garage {
 }

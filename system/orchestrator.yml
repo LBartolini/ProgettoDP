@@ -5,9 +5,10 @@ services:
     ports:
       - 5000:8080
     expose:
-      - "50051"
+      - "${SERVICE_PORT}"
     environment:
       SESSION_KEY: secret
+      SERVICE_PORT: ${SERVICE_PORT}
     networks:
       - "net"
 

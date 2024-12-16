@@ -4,7 +4,9 @@ services:
     depends_on:
       - orchestrator
     expose:
-      - "3000"
+      - "${SERVICE_PORT}"
+    environment:
+      SERVICE_PORT: ${SERVICE_PORT}
     networks:
       - "net"
 

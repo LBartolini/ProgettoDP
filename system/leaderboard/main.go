@@ -36,7 +36,7 @@ const (
 )
 
 var (
-	addr = flag.String("addr", "orchestrator:50051", "the address to connect to")
+	addr = flag.String("addr", "orchestrator:4000", "the address to connect to")
 	name = flag.String("name", defaultName, "Name to greet")
 )
 
