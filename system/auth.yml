@@ -9,6 +9,9 @@ services:
       SERVICE_PORT: ${SERVICE_PORT}
     networks:
       - "net"
+    deploy:
+      mode: replicated
+      replicas: 5
 
 networks:
   net:

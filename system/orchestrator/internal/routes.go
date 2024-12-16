@@ -18,10 +18,10 @@ func Authorized(c *gin.Context) {
 }
 
 type MyRoutes struct {
-	orchestrator Orchestrator
+	orchestrator *MyOrchestrator
 }
 
-func NewMyRoutes(orchestrator Orchestrator) *MyRoutes {
+func NewMyRoutes(orchestrator *MyOrchestrator) *MyRoutes {
 	return &MyRoutes{orchestrator}
 }
 

@@ -8,16 +8,12 @@ import (
 	pb "orchestrator/proto"
 	"os"
 	"strings"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
-
-type Orchestrator interface {
-}
 
 type MyOrchestrator struct {
 	pb.UnimplementedOrchestratorServer
@@ -44,16 +40,5 @@ func (o *MyOrchestrator) RegisterService(ctx context.Context, in *pb.RegisterSer
 		return nil, err
 	}
 
-	c := pb.NewStillAliveClient(client)
-	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	_, err = c.StillAlive(ctxAlive, nil)
-	if err != nil {
-		log.Printf("Unable to connect to service")
-		log.Print(err.Error())
-		return nil, err
-	}
-
-	o.balancer.RegisterService(in.Name, client)
-	return nil, nil
+	return nil, o.balancer.RegisterService(in.Name, client)
 }
