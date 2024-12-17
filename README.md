@@ -12,6 +12,6 @@
 
 ## Steps to run
 
-- make build
+- make build (probably using sudo)
 
 - make up (or make upd for detached version)

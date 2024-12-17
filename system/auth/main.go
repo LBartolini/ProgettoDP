@@ -2,50 +2,47 @@ package main
 
 import (
 	"context"
-	"flag"
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
+
 	"fmt"
 	"log"
 	"net"
 	"os"
 	"time"
 
+	"auth/internal"
+
 	pb "auth/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// server is used to implement helloworld.GreeterServer.
-type server struct {
-	pb.UnimplementedAuthenticationServer
-	pb.UnimplementedStillAliveServer
-}
-
-func (s *server) Login(ctx context.Context, in *pb.PlayerCredentials) (*pb.LoginResult, error) {
-	return &pb.LoginResult{Result: true}, nil
-}
-
-func (s *server) Register(ctx context.Context, in *pb.PlayerDetails) (*pb.RegisterResult, error) {
-	return &pb.RegisterResult{Result: true, Id: 1}, nil
-}
-
-func (s *server) StillAlive(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	log.Printf("ALIVE")
-	return nil, nil
-}
-
 func main() {
-	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("SERVICE_PORT")))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
-	pb.RegisterAuthenticationServer(s, &server{})
-	pb.RegisterStillAliveServer(s, &server{})
 	log.Printf("server listening at %v", lis.Addr())
+
+	db, err := sql.Open("mysql", "root:admin@tcp(auth_db:3306)/Auth")
+	if err != nil {
+		log.Fatalf("failed to connect to db: %s", err)
+	}
+	defer db.Close()
+	if err := db.Ping(); err != nil {
+		log.Fatalf("error pinging database: %v", err)
+	}
+
+	s := grpc.NewServer()
+	server := internal.NewServer(db)
+	pb.RegisterAuthenticationServer(s, server)
+	pb.RegisterStillAliveServer(s, server)
+
 	go registerToOrchestrator()
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
@@ -63,14 +60,13 @@ func registerToOrchestrator() {
 	defer conn.Close()
 
 	c := pb.NewOrchestratorClient(conn)
-	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	_, err = c.RegisterService(ctx, &pb.RegisterServiceMessage{Name: "auth"})
+	_, err = c.RegisterAuth(ctx, nil)
 	for err != nil {
 		log.Print(err.Error())
 		time.Sleep(500 * time.Millisecond)
-		_, err = c.RegisterService(ctx, &pb.RegisterServiceMessage{Name: "auth"})
+		_, err = c.RegisterAuth(ctx, nil)
 	}
 	log.Printf("Registered to Orchestrator")
 }

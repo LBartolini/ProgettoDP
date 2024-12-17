@@ -4,36 +4,110 @@ import (
 	"context"
 	"log"
 	pb "orchestrator/proto"
+	"sync"
 	"time"
+
+	"math/rand/v2"
 
 	"google.golang.org/grpc"
 )
 
 type LoadBalancer interface {
-	RegisterService(name string, conn *grpc.ClientConn) error
-	GetService(name string) *grpc.ClientConn
+	RegisterAuth(conn *grpc.ClientConn) error
+	GetAuth() *grpc.ClientConn
+
+	RegisterLeaderboard(conn *grpc.ClientConn) error
+	GetLeaderboard() *grpc.ClientConn
+
+	RegisterGarage(conn *grpc.ClientConn) error
+	GetGarage() *grpc.ClientConn
+
+	RegisterRacing(conn *grpc.ClientConn) error
+	GetRacing() *grpc.ClientConn
+
 	testConnection(*grpc.ClientConn) error
 }
 
 type RandomLoadBalancer struct {
-	// TODO: mutex, map with service name and connection object
+	mu       sync.Mutex
+	services map[string][]*grpc.ClientConn
 }
 
 func NewRandomLoadBalancer() *RandomLoadBalancer {
-	return &RandomLoadBalancer{}
+	return &RandomLoadBalancer{services: make(map[string][]*grpc.ClientConn)}
 }
 
-func (lb *RandomLoadBalancer) RegisterService(name string, conn *grpc.ClientConn) error {
-	if err := lb.testConnection(conn); err != nil {
-		return err
+func (lb *RandomLoadBalancer) registerService(name string, conn *grpc.ClientConn) error {
+	lb.mu.Lock()
+	defer lb.mu.Unlock()
+
+	if _, exists := lb.services[name]; !exists {
+		lb.services[name] = []*grpc.ClientConn{}
+	}
+	lb.services[name] = append(lb.services[name], conn)
+	return nil
+}
+
+func removeAtIndex(slice []*grpc.ClientConn, index int) []*grpc.ClientConn {
+	if index < 0 || index >= len(slice) {
+		return slice
+	}
+	return append(slice[:index], slice[index+1:]...)
+}
+
+func (lb *RandomLoadBalancer) getService(name string) *grpc.ClientConn {
+	lb.mu.Lock()
+	defer lb.mu.Unlock()
+	var conn *grpc.ClientConn
+
+	log.Printf("%v", lb.services)
+
+	for i := len(lb.services[name]); i > 0; i-- {
+		index := rand.IntN(len(lb.services[name]))
+		temp := lb.services[name][index]
+
+		if err := lb.testConnection(temp); err == nil {
+			conn = temp
+			break
+		} else {
+			lb.services[name] = removeAtIndex(lb.services[name], index)
+			temp.Close()
+		}
 	}
 
-	log.Printf("SERVICE REGISTERED")
-	return nil
+	return conn
 }
 
-func (lb *RandomLoadBalancer) GetService(name string) *grpc.ClientConn {
-	return nil
+func (lb *RandomLoadBalancer) RegisterAuth(conn *grpc.ClientConn) error {
+	return lb.registerService("auth", conn)
+}
+
+func (lb *RandomLoadBalancer) GetAuth() *grpc.ClientConn {
+	return lb.getService("auth")
+}
+
+func (lb *RandomLoadBalancer) RegisterLeaderboard(conn *grpc.ClientConn) error {
+	return lb.registerService("leaderboard", conn)
+}
+
+func (lb *RandomLoadBalancer) GetLeaderboard() *grpc.ClientConn {
+	return lb.getService("leaderboard")
+}
+
+func (lb *RandomLoadBalancer) RegisterRacing(conn *grpc.ClientConn) error {
+	return lb.registerService("racing", conn)
+}
+
+func (lb *RandomLoadBalancer) GetRacing() *grpc.ClientConn {
+	return lb.getService("racing")
+}
+
+func (lb *RandomLoadBalancer) RegisterGarage(conn *grpc.ClientConn) error {
+	return lb.registerService("garage", conn)
+}
+
+func (lb *RandomLoadBalancer) GetGarage() *grpc.ClientConn {
+	return lb.getService("garage")
 }
 
 func (lb *RandomLoadBalancer) testConnection(conn *grpc.ClientConn) error {

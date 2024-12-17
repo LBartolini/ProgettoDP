@@ -14,8 +14,13 @@ ifneq ($(service),)
 	services = $(service)
 endif
 
-build: update_proto
-	docker compose --profile test --profile run $(foreach module,$(system_modules),-f system/$(module).yml) build $(services)
+build: update_proto build_run build_test
+
+build_run:
+	docker compose --profile run $(foreach module,$(system_modules),-f system/$(module).yml) build $(services)
+
+build_test:
+	docker compose --profile test $(foreach module,$(system_modules),-f system/$(module).yml) build $(services)
 
 up:
 	docker compose --profile run $(foreach module,$(system_modules),-f system/$(module).yml) up $(services)
@@ -30,7 +35,7 @@ down:
 	docker compose --profile test --profile run $(foreach module,$(system_modules),-f system/$(module).yml) down $(services)
 
 remove:
-	docker compose --profile test --profile run $(foreach module,$(system_modules),-f system/$(module).yml) rm -s $(services)
+	docker compose --profile test --profile run $(foreach module,$(system_modules),-f system/$(module).yml) rm -fsv $(services)
 
 update_proto: mkdir_proto compile_protobuf
 	$(foreach module,$(system_modules),cp -r system/proto/. system/$(module)/proto ;)

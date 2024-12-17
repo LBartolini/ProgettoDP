@@ -29,11 +29,10 @@ service StillAlive {
 //////////////////////////////
 
 service Orchestrator {
-  rpc RegisterService(RegisterServiceMessage) returns (google.protobuf.Empty) {}
-}
-
-message RegisterServiceMessage {
-  string name = 1;
+  rpc RegisterAuth(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc RegisterLeaderboard(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc RegisterRacing(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc RegisterGarage(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
 //////////////////////////////
@@ -61,7 +60,7 @@ message PlayerDetails {
 
 message RegisterResult {
   bool result = 1;
-  int32 id = 2;
+  int32 id = 2; // change to username
 }
 
 //////////////////////////////

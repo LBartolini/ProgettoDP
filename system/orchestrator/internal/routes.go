@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -44,16 +45,18 @@ func (r *MyRoutes) IndexRoute(c *gin.Context) {
 
 func (r *MyRoutes) LoginRoute(c *gin.Context) {
 	session := sessions.Default(c)
+	username, password := c.PostForm("username"), c.PostForm("password")
+	log.Printf("Got username and password: %s, %s", username, password)
+	res, err := r.orchestrator.Login(username, password)
 
-	// TODO: Contact Auth Service to perform authentication
-	if 1 == 1 {
-		session.Set("username", "my_user")
+	if res && err == nil {
+		session.Set(username, password)
 		session.Save()
-		c.Redirect(http.StatusSeeOther, "/private")
+		c.Redirect(http.StatusFound, "/private")
 		return
 	}
 
-	c.AbortWithStatus(http.StatusUnauthorized)
+	c.Redirect(http.StatusSeeOther, "/")
 }
 
 func (r *MyRoutes) LogoutRoute(c *gin.Context) {
