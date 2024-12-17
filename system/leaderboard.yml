@@ -1,6 +1,8 @@
 services:
   leaderboard:
-    build: leaderboard
+    build:
+      context: leaderboard
+      target: run
     depends_on:
       - orchestrator
     expose:
@@ -9,6 +11,22 @@ services:
       SERVICE_PORT: ${SERVICE_PORT}
     networks:
       - "net"
+    deploy:
+      mode: replicated
+      replicas: 5
+    profiles: ["run"]
+  
+  test_leaderboard:
+    build:
+      context: leaderboard
+      target: test
+    expose:
+      - "${SERVICE_PORT}"
+    environment:
+      SERVICE_PORT: ${SERVICE_PORT}
+    networks:
+      - "net"
+    profiles: ["test"]
 
 networks:
   net:

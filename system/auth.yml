@@ -1,6 +1,8 @@
 services:
   auth:
-    build: auth
+    build:
+      context: auth
+      target: run
     depends_on:
       - orchestrator
     expose:
@@ -12,6 +14,19 @@ services:
     deploy:
       mode: replicated
       replicas: 5
+    profiles: ["run"]
+  
+  test_auth:
+    build:
+      context: auth
+      target: test
+    expose:
+      - "${SERVICE_PORT}"
+    environment:
+      SERVICE_PORT: ${SERVICE_PORT}
+    networks:
+      - "net"
+    profiles: ["test"]
 
 networks:
   net:

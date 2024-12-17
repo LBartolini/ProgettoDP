@@ -1,6 +1,8 @@
 services:
   racing:
-    build: racing
+    build:
+      context: racing
+      target: run
     depends_on:
       - orchestrator
     expose:
@@ -9,6 +11,22 @@ services:
       SERVICE_PORT: ${SERVICE_PORT}
     networks:
       - "net"
+    deploy:
+      mode: replicated
+      replicas: 5
+    profiles: ["run"]
+  
+  test_racing:
+    build:
+      context: racing
+      target: test
+    expose:
+      - "${SERVICE_PORT}"
+    environment:
+      SERVICE_PORT: ${SERVICE_PORT}
+    networks:
+      - "net"
+    profiles: ["test"]
 
 networks:
   net:

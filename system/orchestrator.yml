@@ -1,6 +1,8 @@
 services:
   orchestrator:
-    build: orchestrator
+    build: 
+      context: orchestrator
+      target: run
     restart: always
     ports:
       - 5000:8080
@@ -11,6 +13,20 @@ services:
       SERVICE_PORT: ${SERVICE_PORT}
     networks:
       - "net"
+    profiles: ["run"]
+
+  test_orchestrator:
+    build: 
+      context: orchestrator
+      target: test
+    expose:
+      - "${SERVICE_PORT}"
+    environment:
+      SESSION_KEY: secret
+      SERVICE_PORT: ${SERVICE_PORT}
+    networks:
+      - "net"
+    profiles: ["test"]
 
 networks:
   net:
