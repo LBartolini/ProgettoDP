@@ -60,16 +60,16 @@ func (lb *RandomLoadBalancer) getService(name string) *grpc.ClientConn {
 	defer lb.mu.Unlock()
 	var conn *grpc.ClientConn
 
-	log.Printf("%v", lb.services)
-
 	for i := len(lb.services[name]); i > 0; i-- {
 		index := rand.IntN(len(lb.services[name]))
 		temp := lb.services[name][index]
 
 		if err := lb.testConnection(temp); err == nil {
 			conn = temp
+			log.Printf("Service %s found", name)
 			break
 		} else {
+			log.Printf("Balancer removing service %s not alive", name)
 			lb.services[name] = removeAtIndex(lb.services[name], index)
 			temp.Close()
 		}

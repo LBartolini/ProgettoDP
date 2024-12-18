@@ -38,8 +38,8 @@ service Orchestrator {
 //////////////////////////////
 
 service Authentication {
-  rpc Login (PlayerCredentials) returns (LoginResult) {}
-  rpc Register (PlayerDetails) returns (RegisterResult) {}
+  rpc Login (PlayerCredentials) returns (AuthResult) {}
+  rpc Register (PlayerDetails) returns (AuthResult) {}
 }
 
 message PlayerCredentials {
@@ -47,7 +47,7 @@ message PlayerCredentials {
   string password = 2;
 }
 
-message LoginResult {
+message AuthResult {
   bool result = 1;
 }
 
@@ -56,11 +56,6 @@ message PlayerDetails {
   string password = 2;
   string email = 3;
   string phone = 4;
-}
-
-message RegisterResult {
-  bool result = 1;
-  int32 id = 2; // change to username
 }
 
 //////////////////////////////

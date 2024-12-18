@@ -1,23 +1,45 @@
-{{template "base.html" .}}
-{{define "header"}}
-<title>{{.title}}</title>
-{{end}}
-{{define "content"}}
-<h1>Home</h1>
-<p>This is the great content of the Home</p>
-<p>{{.message}}</p>
-<h1>Login</h1>
-    <form action="/login" method="POST">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <br><br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br><br>
-        <button type="submit">Login</button>
-    </form>
-<h1>Logout</h1>
-    <form action="/private/logout" method="POST">
-        <button type="submit">Logout</button>
-    </form>
-{{end}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+
+<body>
+    <div id="content">
+        <div>
+            <h1>Login</h1>
+            <form action="/login" method="POST">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <br><br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <br><br>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        <div>
+            <h1>Register</h1>
+            <form action="/register" method="POST">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <br><br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <br><br>
+                <label for="email">Email:</label>
+                <input type="text" id="email" name="email" required>
+                <br><br>
+                <label for="password">Phone:</label>
+                <input type="text" id="phone" name="phone" required>
+                <br><br>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+        <h1><a href="/leaderboard">Leaderboard</a></h1>
+    </div>
+</body>
+
+</html>

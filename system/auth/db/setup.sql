@@ -11,5 +11,6 @@ CREATE TABLE IF NOT EXISTS Users (
   PRIMARY KEY (Username)
 ) ENGINE=InnoDB;
 
-INSERT INTO Users VALUES ("pippo", "prova", "test@gmail.com", "123456789");
+INSERT INTO Users VALUES ("Lorenzo", "12345", "lorenzo@gmail.com", "123456789");
+INSERT INTO Users VALUES ("Matteo", "abcde", "matteo@gmail.com", "123456789");
 

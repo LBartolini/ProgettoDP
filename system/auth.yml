@@ -3,6 +3,7 @@ services:
     build:
       context: auth
       target: run
+    restart: always
     depends_on:
       orchestrator:
         condition: service_started
@@ -47,7 +48,7 @@ services:
       MARIADB_ROOT_PASSWORD: admin
     volumes:
       - ./auth/db/setup.sql:/docker-entrypoint-initdb.d/init.sql
-      - auth-data:/var/lib/mysql
+      - auth_db:/var/lib/mysql
     networks:
       - "net"
     profiles: ["run"]
@@ -57,4 +58,4 @@ networks:
     name: net
 
 volumes:
-  auth-data:
+  auth_db:

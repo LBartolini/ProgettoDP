@@ -29,6 +29,8 @@ func main() {
 	r.GET("/", routes.IndexRoute)
 
 	r.POST("/login", routes.LoginRoute)
+	r.POST("/register", routes.RegisterRoute)
+	r.GET("/leaderboard", routes.LeaderboardRoute)
 
 	private := r.Group("/private")
 	private.Use(internal.Authorized)
@@ -36,10 +38,10 @@ func main() {
 		private.GET("/", routes.HomeRoute)
 		private.POST("/logout", routes.LogoutRoute)
 		private.GET("/garage", routes.GarageRoute)
+		private.GET("/history", routes.RaceHistoryRoute)
 	}
 
 	r.Run("0.0.0.0:8080")
-
 }
 
 func startOrchestratorService(orchestrator *internal.MyOrchestrator) {

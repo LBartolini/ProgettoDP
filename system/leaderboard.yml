@@ -3,6 +3,7 @@ services:
     build:
       context: leaderboard
       target: run
+    restart: always
     depends_on:
       - orchestrator
     expose:

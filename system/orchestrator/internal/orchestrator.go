@@ -32,7 +32,6 @@ func (o *MyOrchestrator) RegisterAuth(ctx context.Context, _ *emptypb.Empty) (*e
 	}
 
 	address := strings.Split(peerInfo.Addr.String(), ":")[0]
-	log.Printf("%s", address)
 	client, err := grpc.NewClient(fmt.Sprintf("%s:%s", address, os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		client.Close()
@@ -55,10 +54,29 @@ func (o *MyOrchestrator) Login(username string, password string) (bool, error) {
 
 	result, err := c.Login(ctxAlive, &pb.PlayerCredentials{Username: username, Password: password})
 	if err != nil {
-		log.Printf("error during login")
 		return false, err
 	}
 
-	log.Printf("Login: %t", result.Result)
+	log.Printf("Login of %s result %t", username, result.Result)
+	return result.Result, nil
+}
+
+func (o *MyOrchestrator) Register(username string, password string, email string, phone string) (bool, error) {
+	conn := o.balancer.GetAuth()
+
+	if conn == nil {
+		return false, nil
+	}
+
+	c := pb.NewAuthenticationClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	result, err := c.Register(ctxAlive, &pb.PlayerDetails{Username: username, Password: password, Email: email, Phone: phone})
+	if err != nil {
+		return false, err
+	}
+
+	log.Printf("Register of %s result %t", username, result.Result)
 	return result.Result, nil
 }
