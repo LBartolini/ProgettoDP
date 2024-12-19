@@ -1,13 +1,72 @@
 package main
 
 import (
+	"context"
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
+
+	"fmt"
+	"log"
+	"net"
+	"os"
+	"time"
+
+	"leaderboard/internal"
+
 	pb "leaderboard/proto"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
-type server struct {
-	pb.UnimplementedLeaderboardServer
+func main() {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("SERVICE_PORT")))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	log.Printf("server listening at %v", lis.Addr())
+
+	db, err := sql.Open("mysql", "root:admin@tcp(leaderboard_db:3306)/Auth")
+	if err != nil {
+		log.Fatalf("failed to connect to db: %s", err)
+	}
+	defer db.Close()
+	if err := db.Ping(); err != nil {
+		log.Fatalf("error pinging database: %v", err)
+	}
+
+	s := grpc.NewServer()
+	server := internal.NewServer(db)
+	pb.RegisterLeaderboardServer(s, server)
+	pb.RegisterStillAliveServer(s, server)
+
+	go registerToOrchestrator()
+
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+
 }
 
-func main() {
+func registerToOrchestrator() {
+	log.Printf("Trying to connect to Orchestrator")
+	conn, err := grpc.NewClient(fmt.Sprintf("orchestrator:%s", os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	for err != nil {
+		log.Print(err.Error())
+		time.Sleep(500 * time.Millisecond)
+		conn, err = grpc.NewClient(fmt.Sprintf("orchestrator:%s", os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+	defer conn.Close()
 
+	c := pb.NewOrchestratorClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	_, err = c.RegisterLeaderboard(ctx, nil)
+	for err != nil {
+		log.Print(err.Error())
+		time.Sleep(500 * time.Millisecond)
+		_, err = c.RegisterLeaderboard(ctx, nil)
+	}
+	log.Printf("Registered to Orchestrator")
 }

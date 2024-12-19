@@ -17,7 +17,7 @@ services:
       - "net"
     deploy:
       mode: replicated
-      replicas: 5
+      replicas: ${N_REPLICAS_AUTH}
     profiles: ["run"]
   
   test_auth:
@@ -51,6 +51,7 @@ services:
       - auth_db:/var/lib/mysql
     networks:
       - "net"
+    attach: false
     profiles: ["run"]
 
 networks:

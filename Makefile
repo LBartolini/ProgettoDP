@@ -33,7 +33,7 @@ stop:
 	docker compose --profile test --profile run $(foreach module,$(system_modules),-f system/$(module).yml) stop $(services)
 
 down:
-	docker compose --profile test --profile run $(foreach module,$(system_modules),-f system/$(module).yml) down --volumes $(services)
+	docker compose --profile test --profile run $(foreach module,$(system_modules),-f system/$(module).yml) down --remove-orphans --volumes $(services)
 
 update_proto: mkdir_proto compile_protobuf
 	$(foreach module,$(system_modules),cp -r system/proto/. system/$(module)/proto ;)

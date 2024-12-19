@@ -25,20 +25,54 @@ func NewMyOrchestrator(balancer LoadBalancer) *MyOrchestrator {
 	return &MyOrchestrator{balancer: balancer}
 }
 
-func (o *MyOrchestrator) RegisterAuth(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func getGrpcClientFromContext(ctx context.Context) (*grpc.ClientConn, error) {
 	peerInfo, ok := peer.FromContext(ctx)
 	if !ok {
-		return nil, errors.New("unable to get peer information")
+		return nil, errors.New("unable to get peer information from context")
 	}
 
 	address := strings.Split(peerInfo.Addr.String(), ":")[0]
-	client, err := grpc.NewClient(fmt.Sprintf("%s:%s", address, os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	return grpc.NewClient(fmt.Sprintf("%s:%s", address, os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
+}
+
+func (o *MyOrchestrator) RegisterAuth(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	client, err := getGrpcClientFromContext(ctx)
 	if err != nil {
 		client.Close()
 		return nil, err
 	}
 
 	return nil, o.balancer.RegisterAuth(client)
+}
+
+func (o *MyOrchestrator) RegisterGarage(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	client, err := getGrpcClientFromContext(ctx)
+	if err != nil {
+		client.Close()
+		return nil, err
+	}
+
+	return nil, o.balancer.RegisterGarage(client)
+}
+
+func (o *MyOrchestrator) RegisterLeaderboard(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	client, err := getGrpcClientFromContext(ctx)
+	if err != nil {
+		client.Close()
+		return nil, err
+	}
+
+	return nil, o.balancer.RegisterLeaderboard(client)
+}
+
+func (o *MyOrchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	client, err := getGrpcClientFromContext(ctx)
+	if err != nil {
+		client.Close()
+		return nil, err
+	}
+
+	return nil, o.balancer.RegisterRacing(client)
 }
 
 func (o *MyOrchestrator) Login(username string, password string) (bool, error) {

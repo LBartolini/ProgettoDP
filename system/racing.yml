@@ -5,7 +5,10 @@ services:
       target: run
     restart: always
     depends_on:
-      - orchestrator
+      orchestrator:
+        condition: service_started
+      racing_db:
+        condition: service_healthy
     expose:
       - "${SERVICE_PORT}"
     environment:
@@ -14,7 +17,7 @@ services:
       - "net"
     deploy:
       mode: replicated
-      replicas: 5
+      replicas: ${N_REPLICAS_RACING}
     profiles: ["run"]
   
   test_racing:
@@ -29,6 +32,32 @@ services:
       - "net"
     profiles: ["test"]
 
+  racing_db:
+    image: mariadb
+    restart: always
+    expose:
+      - "3306"
+    healthcheck:
+        test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+        start_period: 1m
+        start_interval: 10s
+        interval: 1m
+        timeout: 5s
+        retries: 10
+    environment:
+      MARIADB_ROOT_PASSWORD: admin
+    volumes:
+      - ./racing/db/setup.sql:/docker-entrypoint-initdb.d/init.sql
+      - racing_db:/var/lib/mysql
+    networks:
+      - "net"
+    attach: false
+    profiles: ["run"]
+
 networks:
   net:
     name: net
+
+
+volumes:
+  racing_db:
