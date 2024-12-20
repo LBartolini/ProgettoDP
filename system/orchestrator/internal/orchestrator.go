@@ -16,13 +16,13 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type MyOrchestrator struct {
+type Orchestrator struct {
 	pb.UnimplementedOrchestratorServer
 	balancer LoadBalancer
 }
 
-func NewMyOrchestrator(balancer LoadBalancer) *MyOrchestrator {
-	return &MyOrchestrator{balancer: balancer}
+func NewOrchestrator(balancer LoadBalancer) *Orchestrator {
+	return &Orchestrator{balancer: balancer}
 }
 
 func getGrpcClientFromContext(ctx context.Context) (*grpc.ClientConn, error) {
@@ -35,47 +35,51 @@ func getGrpcClientFromContext(ctx context.Context) (*grpc.ClientConn, error) {
 	return grpc.NewClient(fmt.Sprintf("%s:%s", address, os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
 }
 
-func (o *MyOrchestrator) RegisterAuth(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func (o *Orchestrator) RegisterAuth(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	client, err := getGrpcClientFromContext(ctx)
 	if err != nil {
 		client.Close()
+		log.Println(err)
 		return nil, err
 	}
 
 	return nil, o.balancer.RegisterAuth(client)
 }
 
-func (o *MyOrchestrator) RegisterGarage(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func (o *Orchestrator) RegisterGarage(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	client, err := getGrpcClientFromContext(ctx)
 	if err != nil {
 		client.Close()
+		log.Println(err)
 		return nil, err
 	}
 
 	return nil, o.balancer.RegisterGarage(client)
 }
 
-func (o *MyOrchestrator) RegisterLeaderboard(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func (o *Orchestrator) RegisterLeaderboard(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	client, err := getGrpcClientFromContext(ctx)
 	if err != nil {
 		client.Close()
+		log.Println(err)
 		return nil, err
 	}
 
 	return nil, o.balancer.RegisterLeaderboard(client)
 }
 
-func (o *MyOrchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func (o *Orchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	client, err := getGrpcClientFromContext(ctx)
 	if err != nil {
 		client.Close()
+		log.Println(err)
 		return nil, err
 	}
 
 	return nil, o.balancer.RegisterRacing(client)
 }
 
-func (o *MyOrchestrator) Login(username string, password string) (bool, error) {
+func (o *Orchestrator) Login(username string, password string) (res bool, e error) {
 	conn := o.balancer.GetAuth()
 
 	if conn == nil {
@@ -88,6 +92,7 @@ func (o *MyOrchestrator) Login(username string, password string) (bool, error) {
 
 	result, err := c.Login(ctxAlive, &pb.PlayerCredentials{Username: username, Password: password})
 	if err != nil {
+		log.Println(err)
 		return false, err
 	}
 
@@ -95,22 +100,63 @@ func (o *MyOrchestrator) Login(username string, password string) (bool, error) {
 	return result.Result, nil
 }
 
-func (o *MyOrchestrator) Register(username string, password string, email string, phone string) (bool, error) {
+func (o *Orchestrator) Register(username string, password string, email string, phone string) (res bool, e error) {
+	// Register in Auth Service
 	conn := o.balancer.GetAuth()
 
 	if conn == nil {
 		return false, nil
 	}
 
-	c := pb.NewAuthenticationClient(conn)
+	auth_client := pb.NewAuthenticationClient(conn)
 	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	result, err := c.Register(ctxAlive, &pb.PlayerDetails{Username: username, Password: password, Email: email, Phone: phone})
+	register_result, err := auth_client.Register(ctxAlive, &pb.PlayerDetails{Username: username, Password: password, Email: email, Phone: phone})
 	if err != nil {
+		log.Println(err)
+		return false, err
+	}
+	log.Printf("Auth Register of %s result %t", username, register_result.Result)
+
+	// Register in Leaderboard Service
+	conn = o.balancer.GetLeaderboard()
+
+	if conn == nil {
+		return false, nil
+	}
+
+	leaderboard_client := pb.NewLeaderboardClient(conn)
+	ctxAlive, cancel = context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	_, err = leaderboard_client.AddPoints(ctxAlive, &pb.PointIncrement{Username: username, Points: 0})
+	if err != nil {
+		log.Println(err)
 		return false, err
 	}
 
-	log.Printf("Register of %s result %t", username, result.Result)
-	return result.Result, nil
+	// TODO: Register in Garage
+
+	return register_result.Result, nil
+}
+
+func (o *Orchestrator) GetLeaderboardInfo(username string) (points int, position int, e error) {
+	conn := o.balancer.GetLeaderboard()
+
+	if conn == nil {
+		return 0, 0, errors.New("unable to get connection to leaderboard service")
+	}
+
+	leaderboard_client := pb.NewLeaderboardClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	pos, err := leaderboard_client.GetPlayer(ctxAlive, &pb.PlayerUsername{Username: username})
+	if err != nil {
+		log.Println(err)
+		return 0, 0, err
+	}
+
+	return int(pos.Points), int(pos.Position), nil
 }

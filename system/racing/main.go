@@ -27,7 +27,7 @@ func main() {
 	}
 	log.Printf("server listening at %v", lis.Addr())
 
-	db, err := sql.Open("mysql", "root:admin@tcp(racing_db:3306)/Auth")
+	db, err := sql.Open("mysql", "root:admin@tcp(racing_db:3306)/Racing")
 	if err != nil {
 		log.Fatalf("failed to connect to db: %s", err)
 	}

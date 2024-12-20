@@ -22,7 +22,7 @@ func main() {
 	r.Use(sessions.Sessions("session", store))
 	r.LoadHTMLGlob("./templates/*")
 
-	orchestrator := internal.NewMyOrchestrator(internal.NewRandomLoadBalancer())
+	orchestrator := internal.NewOrchestrator(internal.NewRandomLoadBalancer())
 	go startOrchestratorService(orchestrator)
 	routes := internal.NewMyRoutes(orchestrator)
 
@@ -44,7 +44,7 @@ func main() {
 	r.Run("0.0.0.0:8080")
 }
 
-func startOrchestratorService(orchestrator *internal.MyOrchestrator) {
+func startOrchestratorService(orchestrator *internal.Orchestrator) {
 	log.Printf("Starting Orchestrator Service")
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("SERVICE_PORT")))
 	if err != nil {

@@ -66,6 +66,25 @@ service Racing {
 //////////////////////////////
 
 service Leaderboard {
+  rpc GetLeaderboard(google.protobuf.Empty) returns (stream LeaderboardPosition) {}
+  rpc GetPlayer(PlayerUsername) returns (LeaderboardPosition) {}
+  rpc AddPoints(PointIncrement) returns (google.protobuf.Empty) {}
+}
+
+message PointIncrement {
+  string username = 1;
+  int32 points = 2;
+}
+
+
+message PlayerUsername {
+  string username = 1;
+}
+
+message LeaderboardPosition {
+  string username = 1;
+  int32 position = 2;
+  int32 points = 3;
 }
 
 //////////////////////////////

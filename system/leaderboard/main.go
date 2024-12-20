@@ -27,7 +27,7 @@ func main() {
 	}
 	log.Printf("server listening at %v", lis.Addr())
 
-	db, err := sql.Open("mysql", "root:admin@tcp(leaderboard_db:3306)/Auth")
+	db, err := sql.Open("mysql", "root:admin@tcp(leaderboard_db:3306)/Leaderboard")
 	if err != nil {
 		log.Fatalf("failed to connect to db: %s", err)
 	}
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	server := internal.NewServer(db)
+	server := internal.NewServer(internal.NewSQL_DB(db))
 	pb.RegisterLeaderboardServer(s, server)
 	pb.RegisterStillAliveServer(s, server)
 

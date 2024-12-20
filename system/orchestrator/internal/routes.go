@@ -20,10 +20,10 @@ func Authorized(c *gin.Context) {
 }
 
 type MyRoutes struct {
-	orchestrator *MyOrchestrator
+	orchestrator *Orchestrator
 }
 
-func NewMyRoutes(orchestrator *MyOrchestrator) *MyRoutes {
+func NewMyRoutes(orchestrator *Orchestrator) *MyRoutes {
 	return &MyRoutes{orchestrator}
 }
 
@@ -78,10 +78,13 @@ func (r *MyRoutes) LogoutRoute(c *gin.Context) {
 }
 
 func (r *MyRoutes) HomeRoute(c *gin.Context) {
-	// TODO: fetch position in leaderboard
+	username := sessions.Default(c).Get("username").(string)
+	points, position, _ := r.orchestrator.GetLeaderboardInfo(username)
 
 	c.HTML(http.StatusOK, "home.html", gin.H{
-		"username": sessions.Default(c).Get("username"),
+		"username": username,
+		"points":   points,
+		"position": position,
 	})
 }
 
