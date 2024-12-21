@@ -9,6 +9,13 @@
 <body>
     <div id="content">
         <h1><a href="/">Home</a></h1>
+        <h1>Leaderboard</h1>
+        <ol>
+            {{ range .leaderboard }}
+                <li>{{.Username}} ({{.Points}} points)</li>
+            {{ end }}
+        </ol>
+        
     </div>
 </body>
 

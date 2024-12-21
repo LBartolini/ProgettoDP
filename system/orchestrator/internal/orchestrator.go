@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	pb "orchestrator/proto"
 	"os"
@@ -15,6 +16,12 @@ import (
 	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
+
+type LeaderboardInfo struct {
+	Username string
+	Points   int32
+	Position int32
+}
 
 type Orchestrator struct {
 	pb.UnimplementedOrchestratorServer
@@ -79,6 +86,8 @@ func (o *Orchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*e
 	return nil, o.balancer.RegisterRacing(client)
 }
 
+//////////////////////
+
 func (o *Orchestrator) Login(username string, password string) (res bool, e error) {
 	conn := o.balancer.GetAuth()
 
@@ -141,11 +150,10 @@ func (o *Orchestrator) Register(username string, password string, email string, 
 	return register_result.Result, nil
 }
 
-func (o *Orchestrator) GetLeaderboardInfo(username string) (points int, position int, e error) {
+func (o *Orchestrator) GetLeaderboardInfo(username string) (*LeaderboardInfo, error) {
 	conn := o.balancer.GetLeaderboard()
-
 	if conn == nil {
-		return 0, 0, errors.New("unable to get connection to leaderboard service")
+		return nil, errors.New("unable to get connection to leaderboard service")
 	}
 
 	leaderboard_client := pb.NewLeaderboardClient(conn)
@@ -155,8 +163,40 @@ func (o *Orchestrator) GetLeaderboardInfo(username string) (points int, position
 	pos, err := leaderboard_client.GetPlayer(ctxAlive, &pb.PlayerUsername{Username: username})
 	if err != nil {
 		log.Println(err)
-		return 0, 0, err
+		return nil, err
 	}
 
-	return int(pos.Points), int(pos.Position), nil
+	return &LeaderboardInfo{Username: username, Points: pos.Points, Position: pos.Position}, nil
+}
+
+func (o *Orchestrator) GetFullLeaderboard() ([]*LeaderboardInfo, error) {
+	conn := o.balancer.GetLeaderboard()
+	if conn == nil {
+		return nil, errors.New("unable to get connection to leaderboard service")
+	}
+
+	leaderboard_client := pb.NewLeaderboardClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := leaderboard_client.GetLeaderboard(ctxAlive, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var leaderboard []*LeaderboardInfo
+	for {
+		p, err := r.Recv()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Println(err)
+			return nil, err
+		} else {
+			pos := &LeaderboardInfo{Username: p.Username, Points: p.Points, Position: p.Position}
+			leaderboard = append(leaderboard, pos)
+		}
+	}
+
+	return leaderboard, nil
 }

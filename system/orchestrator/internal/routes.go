@@ -79,7 +79,15 @@ func (r *MyRoutes) LogoutRoute(c *gin.Context) {
 
 func (r *MyRoutes) HomeRoute(c *gin.Context) {
 	username := sessions.Default(c).Get("username").(string)
-	points, position, _ := r.orchestrator.GetLeaderboardInfo(username)
+	info, err := r.orchestrator.GetLeaderboardInfo(username)
+
+	points := 0
+	position := 0
+
+	if err == nil {
+		points = int(info.Points)
+		position = int(info.Position)
+	}
 
 	c.HTML(http.StatusOK, "home.html", gin.H{
 		"username": username,
@@ -95,9 +103,14 @@ func (r *MyRoutes) GarageRoute(c *gin.Context) {
 }
 
 func (r *MyRoutes) LeaderboardRoute(c *gin.Context) {
-	// TODO:  fetch top 25 of leaderboard
+	leaderboard, err := r.orchestrator.GetFullLeaderboard()
+	if err != nil {
+		leaderboard = make([]*LeaderboardInfo, 0)
+	}
 
-	c.HTML(http.StatusOK, "leaderboard.html", gin.H{})
+	c.HTML(http.StatusOK, "leaderboard.html", gin.H{
+		"leaderboard": leaderboard,
+	})
 }
 
 func (r *MyRoutes) RaceHistoryRoute(c *gin.Context) {

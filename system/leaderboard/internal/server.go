@@ -30,7 +30,7 @@ func (s *Server) GetLeaderboard(_ *emptypb.Empty, stream pb.Leaderboard_GetLeade
 	leaderboard := s.db.GetLeaderboard()
 
 	if len(leaderboard) == 0 || leaderboard == nil {
-		return nil
+		return errors.New("no user in leaderboard")
 	}
 
 	for i := 0; i < len(leaderboard); i++ {
@@ -41,7 +41,7 @@ func (s *Server) GetLeaderboard(_ *emptypb.Empty, stream pb.Leaderboard_GetLeade
 		})
 	}
 
-	return errors.New("no user in leaderboard")
+	return nil
 }
 
 func (s *Server) GetPlayer(ctx context.Context, in *pb.PlayerUsername) (*pb.LeaderboardPosition, error) {
