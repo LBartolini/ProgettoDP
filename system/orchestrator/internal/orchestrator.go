@@ -395,3 +395,41 @@ func (o *Orchestrator) GetUserMoney(username string) (int, error) {
 
 	return int(money.Money), nil
 }
+
+func (o *Orchestrator) BuyMotorcycle(username string, MotorcycleId int) (bool, error) {
+	conn := o.balancer.GetGarage()
+	if conn == nil {
+		return false, errors.New("unable to get connection to garage service")
+	}
+
+	garage_client := pb.NewGarageClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	_, err := garage_client.BuyMotorcycle(ctxAlive, &pb.PlayerMotorcycle{Username: username, MotorcycleId: int32(MotorcycleId)})
+	if err != nil {
+		log.Println(err)
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (o *Orchestrator) UpgradeMotorcycle(username string, MotorcycleId int) (bool, error) {
+	conn := o.balancer.GetGarage()
+	if conn == nil {
+		return false, errors.New("unable to get connection to garage service")
+	}
+
+	garage_client := pb.NewGarageClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	_, err := garage_client.UpgradeMotorcycle(ctxAlive, &pb.PlayerMotorcycle{Username: username, MotorcycleId: int32(MotorcycleId)})
+	if err != nil {
+		log.Println(err)
+		return false, err
+	}
+
+	return true, nil
+}

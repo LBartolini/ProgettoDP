@@ -2,6 +2,7 @@ package internal
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -114,6 +115,40 @@ func (r *MyRoutes) GarageRoute(c *gin.Context) {
 		"not_owned": not_owned,
 		"owned":     owned,
 	})
+}
+
+func (r *MyRoutes) GarageBuyRoute(c *gin.Context) {
+	username := sessions.Default(c).Get("username").(string)
+
+	id, err := strconv.Atoi(c.PostForm("id"))
+	if err != nil {
+		c.Redirect(http.StatusFound, "/private")
+		return
+	}
+
+	_, _ = r.orchestrator.BuyMotorcycle(username, id)
+
+	c.Redirect(http.StatusSeeOther, "/private/garage")
+}
+
+func (r *MyRoutes) GarageUpgradeRoute(c *gin.Context) {
+	username := sessions.Default(c).Get("username").(string)
+
+	id, err := strconv.Atoi(c.PostForm("id"))
+	if err != nil {
+		c.Redirect(http.StatusFound, "/private")
+		return
+	}
+
+	_, _ = r.orchestrator.UpgradeMotorcycle(username, id)
+
+	c.Redirect(http.StatusSeeOther, "/private/garage")
+}
+
+func (r *MyRoutes) RaceStartRoute(c *gin.Context) {
+	// TODO
+
+	c.Redirect(http.StatusSeeOther, "/")
 }
 
 func (r *MyRoutes) LeaderboardRoute(c *gin.Context) {

@@ -38,6 +38,26 @@ CREATE TABLE IF NOT EXISTS Owners (
   FOREIGN KEY (MotorcycleId) REFERENCES Motorcycles(Id)
 ) ENGINE=InnoDB;
 
-INSERT INTO Users VALUES ("Lorenzo", 100), ("Matteo", 50);
+DELIMITER $$
+
+CREATE TRIGGER OwnersBeforeUpdate
+BEFORE UPDATE ON Owners
+FOR EACH ROW
+BEGIN
+  DECLARE max_level INT;
+
+  SELECT MaxLevel INTO max_level
+  FROM Motorcycles
+  WHERE Id = NEW.MotorcycleId;
+
+  IF NEW.Level > max_level THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Max Level Reached';
+  END IF;
+END$$
+
+DELIMITER ;
+
+INSERT INTO Users VALUES ("Lorenzo", 200), ("Matteo", 130);
 INSERT INTO Motorcycles VALUES (1, "Ducati Panigale V4", 100, 20, 15, 10, 3, 8, 2, 12, 2, 15, 5), (2, "KTM SuperDuke 1290 RR", 120, 15, 10, 16, 5, 5, 1, 10, 3, 8, 3);
 INSERT INTO Owners VALUES ("Lorenzo", 1, 5, false), ("Matteo", 2, 4, false);

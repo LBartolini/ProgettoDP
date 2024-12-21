@@ -37,7 +37,13 @@ func main() {
 	{
 		private.GET("/", routes.HomeRoute)
 		private.POST("/logout", routes.LogoutRoute)
+
 		private.GET("/garage", routes.GarageRoute)
+		private.POST("/garage/buy", routes.GarageBuyRoute)
+		private.POST("/garage/upgrade", routes.GarageUpgradeRoute)
+
+		private.POST("/race/start", routes.RaceStartRoute)
+
 		private.GET("/history", routes.RaceHistoryRoute)
 	}
 

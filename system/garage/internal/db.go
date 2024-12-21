@@ -1,6 +1,11 @@
 package internal
 
-import "database/sql"
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"time"
+)
 
 type Motorcycle struct {
 	Id                    int
@@ -114,21 +119,100 @@ func (s *SQL_DB) GetRemainingMotorcycles(username string) ([]*Motorcycle, error)
 }
 
 func (s *SQL_DB) GetUserMoney(username string) (int, error) {
-	return 0, nil
+	row := s.db.QueryRow("SELECT Money FROM Users WHERE Username=?", username)
+
+	money := 0
+	row.Scan(&money)
+
+	return money, row.Err()
 }
 
 func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {
-	return nil
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var price int
+	err = tx.QueryRow("SELECT PriceToBuy FROM Motorcycles WHERE Id=?", MotorcycleId).Scan(&price)
+	if err != nil {
+		return err
+	}
+
+	var money int
+	err = tx.QueryRow("SELECT Money FROM Users WHERE Username=?", username).Scan(&money)
+	if err != nil {
+		return err
+	}
+
+	if money < price {
+		return errors.New("not enough money to perform payment")
+	}
+
+	_, err = tx.Exec("INSERT INTO Owners VALUES (?, ?, 1, false)", username, MotorcycleId)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("UPDATE Users SET Money=Money-? WHERE Username=?", price, username)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (s *SQL_DB) UpgradeMotorcycle(username string, MotorcycleId int) error {
-	return nil
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var price int
+	err = tx.QueryRow("SELECT PriceToUpgrade FROM Motorcycles WHERE Id=?", MotorcycleId).Scan(&price)
+	if err != nil {
+		return err
+	}
+
+	var money int
+	err = tx.QueryRow("SELECT Money FROM Users WHERE Username=?", username).Scan(&money)
+	if err != nil {
+		return err
+	}
+
+	if money < price {
+		return errors.New("not enough money to perform payment")
+	}
+
+	_, err = tx.Exec("UPDATE Owners SET Level=Level+1 WHERE Username=? AND MotorcycleId=?", username, MotorcycleId)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("UPDATE Users SET Money=Money-? WHERE Username=?", price, username)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (s *SQL_DB) StartRace(username string, MotorcycleId int) error {
-	return nil
+	_, err := s.db.Exec("UPDATE Owners SET IsRacing=true WHERE Username=? AND MotorcycleId=?", username, MotorcycleId)
+
+	return err
 }
 
 func (s *SQL_DB) EndRace(username string, MotorcycleId int) error {
-	return nil
+	_, err := s.db.Exec("UPDATE Owners SET IsRacing=false WHERE Username=? AND MotorcycleId=?", username, MotorcycleId)
+
+	return err
 }
