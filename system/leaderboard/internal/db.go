@@ -4,6 +4,12 @@ import (
 	"database/sql"
 )
 
+type LeaderboardInfo struct {
+	username string
+	points   int32
+	position int32
+}
+
 type LeaderboardDB interface {
 	GetLeaderboard() []LeaderboardInfo
 	GetUserInfo(username string) (*LeaderboardInfo, error)

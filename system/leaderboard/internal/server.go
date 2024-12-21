@@ -10,12 +10,6 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type LeaderboardInfo struct {
-	username string
-	points   int32
-	position int32
-}
-
 type Server struct {
 	pb.UnimplementedLeaderboardServer
 	pb.UnimplementedStillAliveServer

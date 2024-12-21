@@ -97,7 +97,6 @@ func (r *MyRoutes) HomeRoute(c *gin.Context) {
 }
 
 func (r *MyRoutes) GarageRoute(c *gin.Context) {
-	// TODO: fetch motorcycles and money
 
 	c.HTML(http.StatusOK, "garage.html", gin.H{})
 }

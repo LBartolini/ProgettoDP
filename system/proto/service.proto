@@ -90,4 +90,44 @@ message LeaderboardPosition {
 //////////////////////////////
 
 service Garage {
+  rpc GetAllMotorcycles(google.protobuf.Empty) returns (stream MotorcycleInfo) {}
+  rpc GetUserMotorcycles(PlayerUsername) returns (stream OwnershipInfo) {}
+  rpc GetUserMoney(PlayerUsername) returns (UserMoney) {}
+  rpc BuyMotorcycle(PlayerMotorcycle) returns (google.protobuf.Empty) {}
+  rpc UpgradeMotorcycle(PlayerMotorcycle) returns (google.protobuf.Empty) {}
+  rpc StartRace(PlayerMotorcycle) returns (google.protobuf.Empty) {}
+  rpc EndRace(PlayerMotorcycle) returns (google.protobuf.Empty) {}
+}
+
+message MotorcycleInfo {
+  int32 id = 1;
+  string name = 2;                 
+  int32 price_to_buy = 3;          
+  int32 price_to_upgrade = 4;       
+  int32 max_level = 5;             
+  int32 engine = 6;                
+  int32 engine_increment = 7;      
+  int32 agility = 8;               
+  int32 agility_increment = 9;     
+  int32 brakes = 10;               
+  int32 brakes_increment = 11;     
+  int32 aerodynamics = 12;         
+  int32 aerodynamics_increment = 13;
+}
+
+message OwnershipInfo {
+  string username = 1;
+  int32 motorcycle_id = 2;
+  int32 level = 3;
+  bool is_racing = 4;
+  MotorcycleInfo motorcycle_info = 5;
+}
+
+message PlayerMotorcycle {
+  string username = 1;
+  int32 motorcycle_id = 2;
+}
+
+message UserMoney {
+  int32 money = 1;
 }

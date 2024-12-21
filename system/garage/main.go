@@ -37,7 +37,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	server := internal.NewServer(db)
+	server := internal.NewServer(internal.NewSQL_DB(db))
 	pb.RegisterGarageServer(s, server)
 	pb.RegisterStillAliveServer(s, server)
 
