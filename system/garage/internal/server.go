@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"errors"
 	"log"
 
 	pb "garage/proto"
@@ -21,10 +20,38 @@ func NewServer(conn GarageDB) *Server {
 }
 
 func (s *Server) GetAllMotorcycles(_ *emptypb.Empty, stream pb.Garage_GetAllMotorcyclesServer) error {
-	motorcycles := s.db.GetAllMotorcycles()
+	motorcycles, err := s.db.GetAllMotorcycles()
 
-	if len(motorcycles) == 0 || motorcycles == nil {
-		return errors.New("no motorcycles")
+	if len(motorcycles) == 0 || err != nil {
+		return err
+	}
+
+	for i := 0; i < len(motorcycles); i++ {
+		stream.Send(&pb.MotorcycleInfo{
+			Id:                    int32(motorcycles[i].Id),
+			Name:                  motorcycles[i].Name,
+			PriceToBuy:            int32(motorcycles[i].PriceToBuy),
+			PriceToUpgrade:        int32(motorcycles[i].PriceToUpgrade),
+			MaxLevel:              int32(motorcycles[i].MaxLevel),
+			Engine:                int32(motorcycles[i].Engine),
+			EngineIncrement:       int32(motorcycles[i].EngineIncrement),
+			Agility:               int32(motorcycles[i].Agility),
+			AgilityIncrement:      int32(motorcycles[i].AgilityIncrement),
+			Brakes:                int32(motorcycles[i].Brakes),
+			BrakesIncrement:       int32(motorcycles[i].BrakesIncrement),
+			Aerodynamics:          int32(motorcycles[i].Aerodynamics),
+			AerodynamicsIncrement: int32(motorcycles[i].AerodynamicsIncrement),
+		})
+	}
+
+	return nil
+}
+
+func (s *Server) GetRemainingMotorcycles(in *pb.PlayerUsername, stream pb.Garage_GetRemainingMotorcyclesServer) error {
+	motorcycles, err := s.db.GetRemainingMotorcycles(in.Username)
+
+	if len(motorcycles) == 0 || err != nil {
+		return err
 	}
 
 	for i := 0; i < len(motorcycles); i++ {
@@ -51,8 +78,8 @@ func (s *Server) GetAllMotorcycles(_ *emptypb.Empty, stream pb.Garage_GetAllMoto
 func (s *Server) GetUserMotorcycles(in *pb.PlayerUsername, stream pb.Garage_GetUserMotorcyclesServer) error {
 	ownerships, err := s.db.GetUserMotorcycles(in.Username)
 
-	if len(ownerships) == 0 || ownerships == nil || err != nil {
-		return errors.New("no motorcycles in user garage")
+	if len(ownerships) == 0 || err != nil {
+		return err
 	}
 
 	for i := 0; i < len(ownerships); i++ {

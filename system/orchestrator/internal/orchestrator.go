@@ -23,6 +23,41 @@ type LeaderboardInfo struct {
 	Position int32
 }
 
+type Motorcycle struct {
+	Id                    int
+	Name                  string
+	PriceToBuy            int
+	PriceToUpgrade        int
+	MaxLevel              int
+	Engine                int
+	EngineIncrement       int
+	Agility               int
+	AgilityIncrement      int
+	Brakes                int
+	BrakesIncrement       int
+	Aerodynamics          int
+	AerodynamicsIncrement int
+}
+
+type Ownership struct {
+	Username              string
+	MotorcycleId          int
+	Name                  string
+	Level                 int
+	IsRacing              bool
+	PriceToBuy            int
+	PriceToUpgrade        int
+	MaxLevel              int
+	Engine                int
+	EngineIncrement       int
+	Agility               int
+	AgilityIncrement      int
+	Brakes                int
+	BrakesIncrement       int
+	Aerodynamics          int
+	AerodynamicsIncrement int
+}
+
 type Orchestrator struct {
 	pb.UnimplementedOrchestratorServer
 	balancer LoadBalancer
@@ -199,4 +234,164 @@ func (o *Orchestrator) GetFullLeaderboard() ([]*LeaderboardInfo, error) {
 	}
 
 	return leaderboard, nil
+}
+
+func (o *Orchestrator) GetAllMotorcycles() ([]*Motorcycle, error) {
+	conn := o.balancer.GetGarage()
+	if conn == nil {
+		return nil, errors.New("unable to get connection to garage service")
+	}
+
+	garage_client := pb.NewGarageClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := garage_client.GetAllMotorcycles(ctxAlive, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var motorcycles []*Motorcycle
+	for {
+		p, err := r.Recv()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Println(err)
+			return nil, err
+		} else {
+			pos := &Motorcycle{
+				Id:                    int(p.Id),
+				Name:                  p.Name,
+				PriceToBuy:            int(p.PriceToBuy),
+				PriceToUpgrade:        int(p.PriceToUpgrade),
+				MaxLevel:              int(p.MaxLevel),
+				Engine:                int(p.Engine),
+				EngineIncrement:       int(p.EngineIncrement),
+				Agility:               int(p.Agility),
+				AgilityIncrement:      int(p.AgilityIncrement),
+				Brakes:                int(p.Brakes),
+				BrakesIncrement:       int(p.BrakesIncrement),
+				Aerodynamics:          int(p.Aerodynamics),
+				AerodynamicsIncrement: int(p.AerodynamicsIncrement),
+			}
+			motorcycles = append(motorcycles, pos)
+		}
+	}
+
+	return motorcycles, nil
+}
+
+func (o *Orchestrator) GetRemainingMotorcycles(username string) ([]*Motorcycle, error) {
+	conn := o.balancer.GetGarage()
+	if conn == nil {
+		return nil, errors.New("unable to get connection to garage service")
+	}
+
+	garage_client := pb.NewGarageClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := garage_client.GetRemainingMotorcycles(ctxAlive, &pb.PlayerUsername{Username: username})
+	if err != nil {
+		return nil, err
+	}
+
+	var motorcycles []*Motorcycle
+	for {
+		p, err := r.Recv()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Println(err)
+			return nil, err
+		} else {
+			pos := &Motorcycle{
+				Id:                    int(p.Id),
+				Name:                  p.Name,
+				PriceToBuy:            int(p.PriceToBuy),
+				PriceToUpgrade:        int(p.PriceToUpgrade),
+				MaxLevel:              int(p.MaxLevel),
+				Engine:                int(p.Engine),
+				EngineIncrement:       int(p.EngineIncrement),
+				Agility:               int(p.Agility),
+				AgilityIncrement:      int(p.AgilityIncrement),
+				Brakes:                int(p.Brakes),
+				BrakesIncrement:       int(p.BrakesIncrement),
+				Aerodynamics:          int(p.Aerodynamics),
+				AerodynamicsIncrement: int(p.AerodynamicsIncrement),
+			}
+			motorcycles = append(motorcycles, pos)
+		}
+	}
+
+	return motorcycles, nil
+}
+
+func (o *Orchestrator) GetUserMotorcycles(username string) ([]*Ownership, error) {
+	conn := o.balancer.GetGarage()
+	if conn == nil {
+		return nil, errors.New("unable to get connection to garage service")
+	}
+
+	garage_client := pb.NewGarageClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := garage_client.GetUserMotorcycles(ctxAlive, &pb.PlayerUsername{Username: username})
+	if err != nil {
+		return nil, err
+	}
+
+	var motorcycles []*Ownership
+	for {
+		p, err := r.Recv()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Println(err)
+			return nil, err
+		} else {
+			pos := &Ownership{
+				Username:              username,
+				Level:                 int(p.Level),
+				IsRacing:              p.IsRacing,
+				MotorcycleId:          int(p.MotorcycleInfo.Id),
+				Name:                  p.MotorcycleInfo.Name,
+				PriceToBuy:            int(p.MotorcycleInfo.PriceToBuy),
+				PriceToUpgrade:        int(p.MotorcycleInfo.PriceToUpgrade),
+				MaxLevel:              int(p.MotorcycleInfo.MaxLevel),
+				Engine:                int(p.MotorcycleInfo.Engine),
+				EngineIncrement:       int(p.MotorcycleInfo.EngineIncrement),
+				Agility:               int(p.MotorcycleInfo.Agility),
+				AgilityIncrement:      int(p.MotorcycleInfo.AgilityIncrement),
+				Brakes:                int(p.MotorcycleInfo.Brakes),
+				BrakesIncrement:       int(p.MotorcycleInfo.BrakesIncrement),
+				Aerodynamics:          int(p.MotorcycleInfo.Aerodynamics),
+				AerodynamicsIncrement: int(p.MotorcycleInfo.AerodynamicsIncrement),
+			}
+			motorcycles = append(motorcycles, pos)
+		}
+	}
+
+	return motorcycles, nil
+}
+
+func (o *Orchestrator) GetUserMoney(username string) (int, error) {
+	conn := o.balancer.GetGarage()
+	if conn == nil {
+		return 0, errors.New("unable to get connection to garage service")
+	}
+
+	garage_client := pb.NewGarageClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	money, err := garage_client.GetUserMoney(ctxAlive, &pb.PlayerUsername{Username: username})
+	if err != nil {
+		log.Println(err)
+		return 0, err
+	}
+
+	return int(money.Money), nil
 }

@@ -91,6 +91,7 @@ message LeaderboardPosition {
 
 service Garage {
   rpc GetAllMotorcycles(google.protobuf.Empty) returns (stream MotorcycleInfo) {}
+  rpc GetRemainingMotorcycles(PlayerUsername) returns (stream MotorcycleInfo) {}
   rpc GetUserMotorcycles(PlayerUsername) returns (stream OwnershipInfo) {}
   rpc GetUserMoney(PlayerUsername) returns (UserMoney) {}
   rpc BuyMotorcycle(PlayerMotorcycle) returns (google.protobuf.Empty) {}

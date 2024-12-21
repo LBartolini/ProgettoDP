@@ -97,8 +97,23 @@ func (r *MyRoutes) HomeRoute(c *gin.Context) {
 }
 
 func (r *MyRoutes) GarageRoute(c *gin.Context) {
+	username := sessions.Default(c).Get("username").(string)
 
-	c.HTML(http.StatusOK, "garage.html", gin.H{})
+	money, _ := r.orchestrator.GetUserMoney(username)
+	owned, err := r.orchestrator.GetUserMotorcycles(username)
+	if err != nil {
+		owned = make([]*Ownership, 0)
+	}
+	not_owned, err := r.orchestrator.GetRemainingMotorcycles(username)
+	if err != nil {
+		not_owned = make([]*Motorcycle, 0)
+	}
+
+	c.HTML(http.StatusOK, "garage.html", gin.H{
+		"money":     money,
+		"not_owned": not_owned,
+		"owned":     owned,
+	})
 }
 
 func (r *MyRoutes) LeaderboardRoute(c *gin.Context) {

@@ -9,6 +9,83 @@
 <body>
     <div id="content">
         <h1><a href="/">Home</a></h1>
+        <h1>Motorcycles</h1>
+        <h2>Owned:</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Level/Max Level (Price to Upgrade)</th>
+                    <th>Engine (Increment)</th>
+                    <th>Agility (Increment)</th>
+                    <th>Brakes (Increment)</th>
+                    <th>Aerodynamics (Increment)</th>
+                    <th>IsRacing</th>
+                    <th>Start/End Race</th>
+                    <th>Upgrade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .owned }}
+                    <td>{{.Name}}</td>
+                    <td>{{.Level}}/{{.MaxLevel}} ({{.PriceToUpgrade}})</td>
+                    <td>{{.Engine}} ({{.EngineIncrement}})</td>
+                    <td>{{.Agility}} ({{.AgilityIncrement}})</td>
+                    <td>{{.Brakes}} ({{.BrakesIncrement}})</td>
+                    <td>{{.Aerodynamics}} ({{.AerodynamicsIncrement}})</td>
+                    <td>{{.IsRacing}}</td>
+                    <td>
+                        {{ if .IsRacing }}
+                            <form action="/private/race/end" method="POST">
+                                <input type="submit" value="End">
+                        {{ else }}    
+                            <form action="/private/race/start" method="POST">
+                                <input type="submit" value="Start">
+                        {{ end }}
+                                <input type="hidden" name="id" value="{{.MotorcycleId}}">
+                    </form>
+                    </td>
+                    <td>
+                        <form action="/private/garage/upgrade" method="POST">
+                            <input type="hidden" name="id" value="{{.MotorcycleId}}">
+                            <input type="submit" value="Upgrade">
+                        </form>
+                    </td>
+                {{ end }}
+            </tbody>
+        </table>
+        <h2>Not Owned:</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price to Buy</th>
+                    <th>Max Level (Price to Upgrade)</th>
+                    <th>Engine (Increment)</th>
+                    <th>Agility (Increment)</th>
+                    <th>Brakes (Increment)</th>
+                    <th>Aerodynamics (Increment)</th>
+                    <th>Buy</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .not_owned }}
+                    <td>{{.Name}}</td>
+                    <td>{{.PriceToBuy}}</td>
+                    <td>{{.MaxLevel}} ({{.PriceToUpgrade}})</td>
+                    <td>{{.Engine}} ({{.EngineIncrement}})</td>
+                    <td>{{.Agility}} ({{.AgilityIncrement}})</td>
+                    <td>{{.Brakes}} ({{.BrakesIncrement}})</td>
+                    <td>{{.Aerodynamics}} ({{.AerodynamicsIncrement}})</td>
+                    <td>
+                        <form action="/private/garage/buy" method="POST">
+                            <input type="hidden" name="id" value="{{.Id}}">
+                            <input type="submit" value="Buy">
+                        </form>
+                    </td>
+                {{ end }}
+            </tbody>
+        </table>
     </div>
 </body>
 
