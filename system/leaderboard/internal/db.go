@@ -56,7 +56,6 @@ func (s *SQL_DB) GetUserInfo(username string) (*LeaderboardInfo, error) {
 }
 
 func (s *SQL_DB) IncrementPoints(username string, points int) error {
-	// TODO: consider the possibility that the user does not exist
 	stmt, err := s.db.Prepare("INSERT INTO Users VALUES (?, ?) ON DUPLICATE KEY UPDATE Points = Points + VALUES(Points)")
 	if err != nil {
 		return err
