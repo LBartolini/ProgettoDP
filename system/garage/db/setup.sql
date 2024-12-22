@@ -6,7 +6,8 @@ DROP TABLE IF EXISTS Users;
 CREATE TABLE IF NOT EXISTS Users (
   Username varchar(32) NOT NULL,
   Money int NOT NULL,
-  PRIMARY KEY (Username)
+  PRIMARY KEY (Username),
+  CHECK (Money >= 0)
 ) ENGINE=InnoDB;
 
 DROP TABLE IF EXISTS Motorcycles;

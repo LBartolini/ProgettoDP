@@ -8,6 +8,7 @@ import (
 	"log"
 	pb "orchestrator/proto"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -153,8 +154,8 @@ func (o *Orchestrator) Register(username string, password string, email string, 
 	}
 
 	auth_client := pb.NewAuthenticationClient(conn)
-	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	ctxAlive, cancel1 := context.WithTimeout(context.Background(), time.Second)
+	defer cancel1()
 
 	register_result, err := auth_client.Register(ctxAlive, &pb.PlayerDetails{Username: username, Password: password, Email: email, Phone: phone})
 	if err != nil {
@@ -171,8 +172,8 @@ func (o *Orchestrator) Register(username string, password string, email string, 
 	}
 
 	leaderboard_client := pb.NewLeaderboardClient(conn)
-	ctxAlive, cancel = context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	ctxAlive, cancel2 := context.WithTimeout(context.Background(), time.Second)
+	defer cancel2()
 
 	_, err = leaderboard_client.AddPoints(ctxAlive, &pb.PointIncrement{Username: username, Points: 0})
 	if err != nil {
@@ -180,7 +181,28 @@ func (o *Orchestrator) Register(username string, password string, email string, 
 		return false, err
 	}
 
-	// TODO: Register in Garage
+	// Register in Garage Service
+	conn = o.balancer.GetGarage()
+
+	if conn == nil {
+		return false, nil
+	}
+
+	garage_client := pb.NewGarageClient(conn)
+	ctxAlive, cancel3 := context.WithTimeout(context.Background(), time.Second)
+	defer cancel3()
+
+	start_money, err := strconv.Atoi(os.Getenv("START_MONEY"))
+	if err != nil {
+		log.Println(err)
+		return false, err
+	}
+
+	_, err = garage_client.IncreaseUserMoney(ctxAlive, &pb.MoneyIncrease{Username: username, Money: int32(start_money)})
+	if err != nil {
+		log.Println(err)
+		return false, err
+	}
 
 	return register_result.Result, nil
 }

@@ -11,6 +11,7 @@ services:
     environment:
       SESSION_KEY: secret
       SERVICE_PORT: ${SERVICE_PORT}
+      START_MONEY: ${START_MONEY}
     networks:
       - "net"
     profiles: ["run"]
@@ -24,6 +25,7 @@ services:
     environment:
       SESSION_KEY: secret
       SERVICE_PORT: ${SERVICE_PORT}
+      START_MONEY: ${START_MONEY}
     networks:
       - "net"
     profiles: ["test"]

@@ -115,6 +115,12 @@ func (s *Server) GetUserMoney(ctx context.Context, in *pb.PlayerUsername) (*pb.U
 	return &pb.UserMoney{Money: int32(money)}, err
 }
 
+func (s *Server) IncreaseUserMoney(ctx context.Context, in *pb.MoneyIncrease) (*emptypb.Empty, error) {
+	err := s.db.IncreaseUserMoney(in.Username, int(in.Money))
+
+	return nil, err
+}
+
 func (s *Server) BuyMotorcycle(ctx context.Context, in *pb.PlayerMotorcycle) (*emptypb.Empty, error) {
 	return nil, s.db.BuyMotorcycle(in.Username, int(in.MotorcycleId))
 }

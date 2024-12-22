@@ -47,6 +47,7 @@ type GarageDB interface {
 	GetRemainingMotorcycles(username string) ([]*Motorcycle, error)
 	GetUserMotorcycles(username string) ([]*Ownership, error)
 	GetUserMoney(username string) (int, error)
+	IncreaseUserMoney(username string, value int) error
 	BuyMotorcycle(username string, MotorcycleId int) error
 	UpgradeMotorcycle(username string, MotorcycleId int) error
 	StartRace(username string, MotorcycleId int) error
@@ -125,6 +126,16 @@ func (s *SQL_DB) GetUserMoney(username string) (int, error) {
 	row.Scan(&money)
 
 	return money, row.Err()
+}
+
+func (s *SQL_DB) IncreaseUserMoney(username string, value int) error {
+	if value < 0 {
+		return errors.New("increase value can not be negative")
+	}
+
+	_, err := s.db.Exec("INSERT INTO Users VALUES (?, ?) ON DUPLICATE KEY UPDATE Money = Money + VALUES(Money)", username, value)
+
+	return err
 }
 
 func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {

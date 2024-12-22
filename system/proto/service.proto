@@ -68,7 +68,7 @@ service Racing {
 service Leaderboard {
   rpc GetLeaderboard(google.protobuf.Empty) returns (stream LeaderboardPosition) {}
   rpc GetPlayer(PlayerUsername) returns (LeaderboardPosition) {}
-  rpc AddPoints(PointIncrement) returns (google.protobuf.Empty) {}
+  rpc AddPoints(PointIncrement) returns (google.protobuf.Empty) {} // used also to create user in leaderboard service database
 }
 
 message PointIncrement {
@@ -94,6 +94,7 @@ service Garage {
   rpc GetRemainingMotorcycles(PlayerUsername) returns (stream MotorcycleInfo) {}
   rpc GetUserMotorcycles(PlayerUsername) returns (stream OwnershipInfo) {}
   rpc GetUserMoney(PlayerUsername) returns (UserMoney) {}
+  rpc IncreaseUserMoney(MoneyIncrease) returns (google.protobuf.Empty) {} // used also to create user in garage service database
   rpc BuyMotorcycle(PlayerMotorcycle) returns (google.protobuf.Empty) {}
   rpc UpgradeMotorcycle(PlayerMotorcycle) returns (google.protobuf.Empty) {}
   rpc StartRace(PlayerMotorcycle) returns (google.protobuf.Empty) {}
@@ -131,4 +132,9 @@ message PlayerMotorcycle {
 
 message UserMoney {
   int32 money = 1;
+}
+
+message MoneyIncrease {
+  string username = 1;
+  int32 money = 2;
 }
