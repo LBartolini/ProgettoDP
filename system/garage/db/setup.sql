@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS Owners (
   Username varchar(32) NOT NULL,
   MotorcycleId int NOT NULL,
   Level int NOT NULL,
-  IsRacing boolean NOT NULL,
   PRIMARY KEY (Username, MotorcycleId),
   FOREIGN KEY (Username) REFERENCES Users(Username),
   FOREIGN KEY (MotorcycleId) REFERENCES Motorcycles(Id)
@@ -61,4 +60,4 @@ DELIMITER ;
 
 INSERT INTO Users VALUES ("Lorenzo", 200), ("Matteo", 130);
 INSERT INTO Motorcycles VALUES (1, "Ducati Panigale V4", 100, 20, 15, 10, 3, 8, 2, 12, 2, 15, 5), (2, "KTM SuperDuke 1290 RR", 120, 15, 10, 16, 5, 5, 1, 10, 3, 8, 3);
-INSERT INTO Owners VALUES ("Lorenzo", 1, 5, false), ("Matteo", 2, 4, false);
+INSERT INTO Owners VALUES ("Lorenzo", 1, 5), ("Matteo", 2, 4);

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"database/sql"
 	"log"
 
 	pb "racing/proto"
@@ -13,11 +12,23 @@ import (
 type Server struct {
 	pb.UnimplementedRacingServer
 	pb.UnimplementedStillAliveServer
-	db *sql.DB // TODO Create dependency
+	db RacingDB
 }
 
-func NewServer(conn *sql.DB) *Server {
+func NewServer(conn RacingDB) *Server {
 	return &Server{db: conn}
+}
+
+func (s *Server) CheckIsRacing(ctx context.Context, in *pb.PlayerMotorcycle) (*pb.RacingStatus, error) {
+	return nil, nil
+}
+
+func (s *Server) GetHistory(*pb.PlayerUsername, pb.Racing_GetHistoryServer) error {
+	return nil
+}
+
+func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*emptypb.Empty, error) {
+	return nil, nil
 }
 
 func (s *Server) StillAlive(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {

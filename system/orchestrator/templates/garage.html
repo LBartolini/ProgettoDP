@@ -52,7 +52,7 @@
                     <th>Agility (Increment)</th>
                     <th>Brakes (Increment)</th>
                     <th>Aerodynamics (Increment)</th>
-                    <th>IsRacing</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -71,10 +71,12 @@
                     <td>{{.Agility}} ({{.AgilityIncrement}})</td>
                     <td>{{.Brakes}} ({{.BrakesIncrement}})</td>
                     <td>{{.Aerodynamics}} ({{.AerodynamicsIncrement}})</td>
-                    <td> <b>{{.IsRacing}}</b>
-                        {{ if not .IsRacing }}
+                    <td> 
+                        {{ if .IsRacing }}
+                        <p>Racing in<b>{{.TrackName}}</b></p>
+                        {{ else }}
                         <form action="/private/race/start" method="POST">
-                            <input type="submit" value="Start">
+                            <input type="submit" value="Start in Random Track">
                             <input type="hidden" name="id" value="{{.MotorcycleId}}">
                         </form>
                         {{ end }}

@@ -45,7 +45,8 @@ type Ownership struct {
 	MotorcycleId          int
 	Name                  string
 	Level                 int
-	IsRacing              bool
+	IsRacing              bool   // fetched from Racing Service
+	TrackName             string // fetched from Racing Service
 	PriceToBuy            int
 	PriceToUpgrade        int
 	MaxLevel              int
@@ -120,6 +121,54 @@ func (o *Orchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*e
 	}
 
 	return nil, o.balancer.RegisterRacing(client)
+}
+
+func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer) error {
+	for {
+		race_result, err := stream.Recv()
+		if err == io.EOF {
+			return stream.SendAndClose(nil)
+		}
+		if err != nil {
+			return err
+		}
+
+		// Garage: increase money
+		garage_conn := o.balancer.GetGarage()
+		if garage_conn == nil {
+			return errors.New("unable to get connection to garage service")
+		}
+
+		garage_client := pb.NewGarageClient(garage_conn)
+		ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		increase := &pb.MoneyIncrease{Username: race_result.Username,
+			Money: int32(o.computeMoneyAfterRace(race_result.Username, int(race_result.PositionInRace), int(race_result.TotalMotorcycles)))}
+		_, err = garage_client.IncreaseUserMoney(ctxAlive, increase)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		// Leaderboard: increase points
+		leaderboard_conn := o.balancer.GetLeaderboard()
+		if leaderboard_conn == nil {
+			return errors.New("unable to get connection to garage service")
+		}
+
+		leaderboard_client := pb.NewLeaderboardClient(leaderboard_conn)
+		ctxAliveLeaderboard, cancel_leaderboard := context.WithTimeout(context.Background(), time.Second)
+		defer cancel_leaderboard()
+
+		points := &pb.PointIncrement{Username: race_result.Username,
+			Points: int32(o.computePointsAfterRace(race_result.Username, int(race_result.PositionInRace), int(race_result.TotalMotorcycles)))}
+		_, err = leaderboard_client.AddPoints(ctxAliveLeaderboard, points)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+	}
 }
 
 //////////////////////
@@ -204,6 +253,8 @@ func (o *Orchestrator) Register(username string, password string, email string, 
 		return false, err
 	}
 
+	// Register in Racing Service
+
 	return register_result.Result, nil
 }
 
@@ -258,52 +309,6 @@ func (o *Orchestrator) GetFullLeaderboard() ([]*LeaderboardInfo, error) {
 	return leaderboard, nil
 }
 
-func (o *Orchestrator) GetAllMotorcycles() ([]*Motorcycle, error) {
-	conn := o.balancer.GetGarage()
-	if conn == nil {
-		return nil, errors.New("unable to get connection to garage service")
-	}
-
-	garage_client := pb.NewGarageClient(conn)
-	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	r, err := garage_client.GetAllMotorcycles(ctxAlive, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var motorcycles []*Motorcycle
-	for {
-		p, err := r.Recv()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			log.Println(err)
-			return nil, err
-		} else {
-			pos := &Motorcycle{
-				Id:                    int(p.Id),
-				Name:                  p.Name,
-				PriceToBuy:            int(p.PriceToBuy),
-				PriceToUpgrade:        int(p.PriceToUpgrade),
-				MaxLevel:              int(p.MaxLevel),
-				Engine:                int(p.Engine),
-				EngineIncrement:       int(p.EngineIncrement),
-				Agility:               int(p.Agility),
-				AgilityIncrement:      int(p.AgilityIncrement),
-				Brakes:                int(p.Brakes),
-				BrakesIncrement:       int(p.BrakesIncrement),
-				Aerodynamics:          int(p.Aerodynamics),
-				AerodynamicsIncrement: int(p.AerodynamicsIncrement),
-			}
-			motorcycles = append(motorcycles, pos)
-		}
-	}
-
-	return motorcycles, nil
-}
-
 func (o *Orchestrator) GetRemainingMotorcycles(username string) ([]*Motorcycle, error) {
 	conn := o.balancer.GetGarage()
 	if conn == nil {
@@ -351,12 +356,18 @@ func (o *Orchestrator) GetRemainingMotorcycles(username string) ([]*Motorcycle, 
 }
 
 func (o *Orchestrator) GetUserMotorcycles(username string) ([]*Ownership, error) {
-	conn := o.balancer.GetGarage()
-	if conn == nil {
+	garage_conn := o.balancer.GetGarage()
+	if garage_conn == nil {
 		return nil, errors.New("unable to get connection to garage service")
 	}
+	garage_client := pb.NewGarageClient(garage_conn)
 
-	garage_client := pb.NewGarageClient(conn)
+	racing_conn := o.balancer.GetRacing()
+	if racing_conn == nil {
+		return nil, errors.New("unable to get connection to racing service")
+	}
+	racing_client := pb.NewRacingClient(racing_conn)
+
 	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -374,11 +385,20 @@ func (o *Orchestrator) GetUserMotorcycles(username string) ([]*Ownership, error)
 			log.Println(err)
 			return nil, err
 		} else {
+			ctxAliveRacing, cancel_racing := context.WithTimeout(context.Background(), time.Second)
+			defer cancel_racing()
+
+			status, err_racing := racing_client.CheckIsRacing(ctxAliveRacing, &pb.PlayerMotorcycle{Username: username, MotorcycleId: p.MotorcycleInfo.Id})
+			if err_racing != nil {
+				return nil, err_racing
+			}
+
 			pos := &Ownership{
 				Username:              username,
 				Level:                 int(p.Level),
-				IsRacing:              p.IsRacing,
 				MotorcycleId:          int(p.MotorcycleInfo.Id),
+				IsRacing:              status.IsRacing,
+				TrackName:             status.TrackName,
 				Name:                  p.MotorcycleInfo.Name,
 				PriceToBuy:            int(p.MotorcycleInfo.PriceToBuy),
 				PriceToUpgrade:        int(p.MotorcycleInfo.PriceToUpgrade),
@@ -392,6 +412,7 @@ func (o *Orchestrator) GetUserMotorcycles(username string) ([]*Ownership, error)
 				Aerodynamics:          int(p.MotorcycleInfo.Aerodynamics),
 				AerodynamicsIncrement: int(p.MotorcycleInfo.AerodynamicsIncrement),
 			}
+
 			motorcycles = append(motorcycles, pos)
 		}
 	}
@@ -454,4 +475,12 @@ func (o *Orchestrator) UpgradeMotorcycle(username string, MotorcycleId int) (boo
 	}
 
 	return true, nil
+}
+
+func (o *Orchestrator) computeMoneyAfterRace(username string, position int, total int) int {
+	return 0
+}
+
+func (o *Orchestrator) computePointsAfterRace(username string, position int, total int) int {
+	return 0
 }

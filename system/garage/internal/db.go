@@ -28,7 +28,6 @@ type Ownership struct {
 	MotorcycleId          int
 	Name                  string
 	Level                 int
-	IsRacing              bool
 	PriceToBuy            int
 	PriceToUpgrade        int
 	MaxLevel              int
@@ -43,15 +42,12 @@ type Ownership struct {
 }
 
 type GarageDB interface {
-	GetAllMotorcycles() ([]*Motorcycle, error)
 	GetRemainingMotorcycles(username string) ([]*Motorcycle, error)
 	GetUserMotorcycles(username string) ([]*Ownership, error)
 	GetUserMoney(username string) (int, error)
 	IncreaseUserMoney(username string, value int) error
 	BuyMotorcycle(username string, MotorcycleId int) error
 	UpgradeMotorcycle(username string, MotorcycleId int) error
-	StartRace(username string, MotorcycleId int) error
-	EndRace(username string, MotorcycleId int) error
 }
 
 type SQL_DB struct {
@@ -60,10 +56,6 @@ type SQL_DB struct {
 
 func NewSQL_DB(conn *sql.DB) *SQL_DB {
 	return &SQL_DB{db: conn}
-}
-
-func (s *SQL_DB) GetAllMotorcycles() ([]*Motorcycle, error) { // TODO Maybe Remove Because Unused
-	return nil, nil
 }
 
 func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
@@ -77,7 +69,7 @@ func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
 
 	for rows.Next() {
 		var row Ownership
-		err := rows.Scan(&row.Username, &row.MotorcycleId, &row.Level, &row.IsRacing, &row.MotorcycleId,
+		err := rows.Scan(&row.Username, &row.MotorcycleId, &row.Level, &row.MotorcycleId,
 			&row.Name, &row.PriceToBuy, &row.PriceToUpgrade, &row.MaxLevel, &row.Engine, &row.EngineIncrement,
 			&row.Agility, &row.AgilityIncrement, &row.Brakes, &row.BrakesIncrement, &row.Aerodynamics, &row.AerodynamicsIncrement)
 		if err != nil {
@@ -214,16 +206,4 @@ func (s *SQL_DB) UpgradeMotorcycle(username string, MotorcycleId int) error {
 	}
 
 	return tx.Commit()
-}
-
-func (s *SQL_DB) StartRace(username string, MotorcycleId int) error {
-	_, err := s.db.Exec("UPDATE Owners SET IsRacing=true WHERE Username=? AND MotorcycleId=?", username, MotorcycleId)
-
-	return err
-}
-
-func (s *SQL_DB) EndRace(username string, MotorcycleId int) error {
-	_, err := s.db.Exec("UPDATE Owners SET IsRacing=false WHERE Username=? AND MotorcycleId=?", username, MotorcycleId)
-
-	return err
 }

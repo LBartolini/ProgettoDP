@@ -12,6 +12,10 @@ services:
       SESSION_KEY: secret
       SERVICE_PORT: ${SERVICE_PORT}
       START_MONEY: ${START_MONEY}
+      MONEY_WIN: ${MONEY_WIN}
+      MONEY_LAST: ${MONEY_LAST}
+      POINTS_WIN: ${POINTS_WIN}
+      POINTS_LAST: ${POINTS_LAST}
     networks:
       - "net"
     profiles: ["run"]
@@ -26,6 +30,10 @@ services:
       SESSION_KEY: secret
       SERVICE_PORT: ${SERVICE_PORT}
       START_MONEY: ${START_MONEY}
+      MONEY_WIN: ${MONEY_WIN}
+      MONEY_LAST: ${MONEY_LAST}
+      POINTS_WIN: ${POINTS_WIN}
+      POINTS_LAST: ${POINTS_LAST}
     networks:
       - "net"
     profiles: ["test"]
