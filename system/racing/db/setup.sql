@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS Tracks (
   BrakesValue int NOT NULL,
   AgilityValue int NOT NULL,
   AerodynamicsValue int NOT NULL,
-  PRIMARY KEY (Id),
+  PRIMARY KEY (Id)
 ) ENGINE=InnoDB;
 
 DROP TABLE IF EXISTS Matchmaking;
@@ -19,48 +19,46 @@ CREATE TABLE IF NOT EXISTS Matchmaking (
   PlayerUsername varchar(32) NOT NULL,
   MotorcycleId int NOT NULL,
   TrackId int NOT NULL,
-  MotorycleName varchar(32) NOT NULL,
-  MotorycleLevel int NOT NULL,
+  MotorcycleName varchar(32) NOT NULL,
+  MotorcycleLevel int NOT NULL,
   MotorcycleEngine int NOT NULL,
   MotorcycleBrakes int NOT NULL,
   MotorcycleAgility int NOT NULL,
   MotorcycleAerodynamics int NOT NULL,
   PRIMARY KEY (PlayerUsername, MotorcycleId, TrackId),
-  FOREIGN KEY TrackId REFERENCES Tracks(Id)
+  FOREIGN KEY (TrackId) REFERENCES Tracks(Id)
 ) ENGINE=InnoDB;
 
-CREATE VIEW MatchmakingTotalPower AS
-SELECT PlayerUsername, MotorocycleId, MotorcycleName, MotorcycleLevel, TrackId, 
-    MaxMotorcycles, (MotorcycleEngine*EngineValue + MotorcycleAgility*AgilityValue + MotorcycleBrakes*BrakesValue + MotorcycleAerodynamics*AerodynamicsValue) as Power
+CREATE VIEW DetailedMatchmaking AS
+SELECT PlayerUsername, MotorcycleId, MotorcycleName, MotorcycleLevel, TrackId, T.Name as Trackname, MaxMotorcycles - COUNT(*) OVER (PARTITION BY TrackId) as FreeSlots, MaxMotorcycles, (MotorcycleEngine * EngineValue + MotorcycleAgility * AgilityValue + MotorcycleBrakes * BrakesValue + MotorcycleAerodynamics * AerodynamicsValue) as Power, RANK() OVER (PARTITION BY TrackId ORDER BY (MotorcycleEngine * EngineValue + MotorcycleAgility * AgilityValue + MotorcycleBrakes * BrakesValue + MotorcycleAerodynamics * AerodynamicsValue) DESC) as Position
 FROM Matchmaking M
-INNER JOIN Tracks T ON M.TrackId=T.Id
-GROUP BY TrackId;
+INNER JOIN Tracks T ON M.TrackId=T.Id;
 
 DELIMITER $$
 
 CREATE TRIGGER MatchmakingBeforeUpdate
-BEFORE UPDATE ON MatchmakingBeforeUpdate
+BEFORE UPDATE ON Matchmaking
 FOR EACH ROW
 BEGIN
   DECLARE max_motorcycles INT;
+  DECLARE motorcycle_racing INT;
 
   SELECT MaxMotorcycles INTO max_motorcycles
   FROM Tracks
   WHERE Id = NEW.TrackId;
 
-  DECLARE motorcycle_racing INT;
-
   SELECT COUNT(*) INTO motorcycle_racing
   FROM Matchmaking
-  WHERE TrackId = NEW.TrackId;
+  WHERE TrackId = NEW.TrackId AND MotorcycleId != OLD.MotorcycleId;
 
-  IF motorcycle_racing > max_motorcycles THEN
+  IF (motorcycle_racing + 1) > max_motorcycles THEN
     SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'Max Motorcycle for this track reached';
+    SET MESSAGE_TEXT = 'Max Motorcycles for this track reached';
   END IF;
 END$$
 
 DELIMITER ;
+
 
 DROP TABLE IF EXISTS History;
 CREATE TABLE IF NOT EXISTS History (
@@ -69,8 +67,9 @@ CREATE TABLE IF NOT EXISTS History (
   TotalMotorcycles int NOT NULL,
   PlayerUsername varchar(32) NOT NULL,
   TrackName varchar(32) NOT NULL,
-  MotorycleName varchar(32) NOT NULL,
-  MotorycleLevel int NOT NULL,
+  MotorcycleName varchar(32) NOT NULL,
+  MotorcycleLevel int NOT NULL,
   PRIMARY KEY (RaceId)
 ) ENGINE=InnoDB;
 
+INSERT INTO Tracks VALUES (1, "Mugello", 3, 5, 5, 5, 5);

@@ -44,6 +44,7 @@ type Ownership struct {
 type GarageDB interface {
 	GetRemainingMotorcycles(username string) ([]*Motorcycle, error)
 	GetUserMotorcycles(username string) ([]*Ownership, error)
+	GetUserMotorcycleStats(username string, MotorcycleId int) (*Ownership, error)
 	GetUserMoney(username string) (int, error)
 	IncreaseUserMoney(username string, value int) error
 	BuyMotorcycle(username string, MotorcycleId int) error
@@ -59,6 +60,7 @@ func NewSQL_DB(conn *sql.DB) *SQL_DB {
 }
 
 func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
+	// TODO Base value + Level*Increment
 	rows, err := s.db.Query("SELECT * FROM Owners O INNER JOIN Motorcycles M ON O.MotorcycleId=M.Id WHERE O.Username=?", username)
 	if err != nil {
 		return nil, err
@@ -83,6 +85,20 @@ func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
 	}
 
 	return owned, nil
+}
+
+func (s *SQL_DB) GetUserMotorcycleStats(username string, MotorcycleId int) (*Ownership, error) {
+	// TODO Base value + Level*Increment
+	row := s.db.QueryRow("SELECT * FROM Owners O INNER JOIN Motorcycles M ON O.MotorcycleId=M.Id WHERE O.Username=? AND O.MotorcycleId=?", username, MotorcycleId)
+	var owned Ownership
+	err := row.Scan(&owned.Username, &owned.MotorcycleId, &owned.Level, &owned.MotorcycleId,
+		&owned.Name, &owned.PriceToBuy, &owned.PriceToUpgrade, &owned.MaxLevel, &owned.Engine, &owned.EngineIncrement,
+		&owned.Agility, &owned.AgilityIncrement, &owned.Brakes, &owned.BrakesIncrement, &owned.Aerodynamics, &owned.AerodynamicsIncrement)
+	if err != nil {
+		return nil, err
+	}
+
+	return &owned, nil
 }
 
 func (s *SQL_DB) GetRemainingMotorcycles(username string) ([]*Motorcycle, error) {
@@ -156,7 +172,7 @@ func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {
 		return errors.New("not enough money to perform payment")
 	}
 
-	_, err = tx.Exec("INSERT INTO Owners VALUES (?, ?, 1, false)", username, MotorcycleId)
+	_, err = tx.Exec("INSERT INTO Owners (Username, MotorcycleId) VALUES (?, ?)", username, MotorcycleId)
 	if err != nil {
 		return err
 	}

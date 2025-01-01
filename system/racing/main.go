@@ -36,20 +36,6 @@ func main() {
 		log.Fatalf("error pinging database: %v", err)
 	}
 
-	s := grpc.NewServer()
-	server := internal.NewServer(db)
-	pb.RegisterRacingServer(s, server)
-	pb.RegisterStillAliveServer(s, server)
-
-	go registerToOrchestrator()
-
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
-
-}
-
-func registerToOrchestrator() {
 	log.Printf("Trying to connect to Orchestrator")
 	conn, err := grpc.NewClient(fmt.Sprintf("orchestrator:%s", os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	for err != nil {
@@ -57,12 +43,25 @@ func registerToOrchestrator() {
 		time.Sleep(500 * time.Millisecond)
 		conn, err = grpc.NewClient(fmt.Sprintf("orchestrator:%s", os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
-	defer conn.Close()
 
+	s := grpc.NewServer()
+	server := internal.NewServer(internal.NewSQL_DB(db), conn)
+	pb.RegisterRacingServer(s, server)
+	pb.RegisterStillAliveServer(s, server)
+
+	go registerToOrchestrator(conn)
+
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+
+}
+
+func registerToOrchestrator(conn *grpc.ClientConn) {
 	c := pb.NewOrchestratorClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	_, err = c.RegisterRacing(ctx, nil)
+	_, err := c.RegisterRacing(ctx, nil)
 	for err != nil {
 		log.Print(err.Error())
 		time.Sleep(500 * time.Millisecond)

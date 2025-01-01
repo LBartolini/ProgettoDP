@@ -146,9 +146,20 @@ func (r *MyRoutes) GarageUpgradeRoute(c *gin.Context) {
 }
 
 func (r *MyRoutes) RaceStartRoute(c *gin.Context) {
-	// TODO
+	username := sessions.Default(c).Get("username").(string)
+	id, err := strconv.Atoi(c.PostForm("id"))
+	if err != nil {
+		c.Redirect(http.StatusFound, "/private")
+		return
+	}
 
-	c.Redirect(http.StatusSeeOther, "/")
+	err = r.orchestrator.StartMatchmaking(username, id)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/private")
+		return
+	}
+
+	c.Redirect(http.StatusSeeOther, "/private/garage")
 }
 
 func (r *MyRoutes) LeaderboardRoute(c *gin.Context) {

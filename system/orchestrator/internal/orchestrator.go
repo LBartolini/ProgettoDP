@@ -143,8 +143,10 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
+		money_win, _ := strconv.Atoi(os.Getenv("MONEY_WIN"))
+		money_last, _ := strconv.Atoi(os.Getenv("MONEY_LAST"))
 		increase := &pb.MoneyIncrease{Username: race_result.Username,
-			Money: int32(o.computeMoneyAfterRace(race_result.Username, int(race_result.PositionInRace), int(race_result.TotalMotorcycles)))}
+			Money: int32(o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), money_win, money_last))}
 		_, err = garage_client.IncreaseUserMoney(ctxAlive, increase)
 		if err != nil {
 			log.Println(err)
@@ -161,8 +163,10 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		ctxAliveLeaderboard, cancel_leaderboard := context.WithTimeout(context.Background(), time.Second)
 		defer cancel_leaderboard()
 
+		points_win, _ := strconv.Atoi(os.Getenv("POINTS_WIN"))
+		points_last, _ := strconv.Atoi(os.Getenv("POINTS_LAST"))
 		points := &pb.PointIncrement{Username: race_result.Username,
-			Points: int32(o.computePointsAfterRace(race_result.Username, int(race_result.PositionInRace), int(race_result.TotalMotorcycles)))}
+			Points: int32(o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), points_win, points_last))}
 		_, err = leaderboard_client.AddPoints(ctxAliveLeaderboard, points)
 		if err != nil {
 			log.Println(err)
@@ -477,10 +481,51 @@ func (o *Orchestrator) UpgradeMotorcycle(username string, MotorcycleId int) (boo
 	return true, nil
 }
 
-func (o *Orchestrator) computeMoneyAfterRace(username string, position int, total int) int {
-	return 0
+func (o *Orchestrator) computeAfterRace(position int, total int, first int, last int) int {
+	// line that goes from the point (1, first) to (total, last)
+
+	m := (last - first) / (total - 1)
+	return int(m*(position-1) + first)
 }
 
-func (o *Orchestrator) computePointsAfterRace(username string, position int, total int) int {
-	return 0
+func (o *Orchestrator) StartMatchmaking(username string, MotorcycleId int) error {
+	conn := o.balancer.GetGarage()
+	if conn == nil {
+		return errors.New("unable to get connection to garage service")
+	}
+
+	garage_client := pb.NewGarageClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	stats, err := garage_client.GetUserMotorcycleStats(ctxAlive, &pb.PlayerMotorcycle{Username: username, MotorcycleId: int32(MotorcycleId)})
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	conn = o.balancer.GetRacing()
+	if conn == nil {
+		return errors.New("unable to get connection to racing service")
+	}
+
+	racing_client := pb.NewRacingClient(conn)
+	ctxAlive, cancel = context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	_, err = racing_client.StartMatchmaking(ctxAlive, &pb.RaceMotorcycle{Username: username,
+		MotorcycleId:   int32(MotorcycleId),
+		MotorcycleName: stats.MotorcycleInfo.Name,
+		Level:          stats.Level,
+		Engine:         stats.MotorcycleInfo.Engine,
+		Brakes:         stats.MotorcycleInfo.Brakes,
+		Agility:        stats.MotorcycleInfo.Agility,
+		Aerodynamics:   stats.MotorcycleInfo.Aerodynamics})
+
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }

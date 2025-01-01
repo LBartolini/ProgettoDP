@@ -32,7 +32,7 @@ DROP TABLE IF EXISTS Owners;
 CREATE TABLE IF NOT EXISTS Owners (
   Username varchar(32) NOT NULL,
   MotorcycleId int NOT NULL,
-  Level int NOT NULL,
+  Level int NOT NULL DEFAULT 1,
   PRIMARY KEY (Username, MotorcycleId),
   FOREIGN KEY (Username) REFERENCES Users(Username),
   FOREIGN KEY (MotorcycleId) REFERENCES Motorcycles(Id)

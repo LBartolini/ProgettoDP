@@ -73,7 +73,7 @@
                     <td>{{.Aerodynamics}} ({{.AerodynamicsIncrement}})</td>
                     <td> 
                         {{ if .IsRacing }}
-                        <p>Racing in<b>{{.TrackName}}</b></p>
+                        <p>Racing in <b>{{.TrackName}}</b></p>
                         {{ else }}
                         <form action="/private/race/start" method="POST">
                             <input type="submit" value="Start in Random Track">

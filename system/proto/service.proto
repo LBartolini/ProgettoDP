@@ -33,7 +33,7 @@ service Orchestrator {
   rpc RegisterLeaderboard(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc RegisterRacing(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc RegisterGarage(google.protobuf.Empty) returns (google.protobuf.Empty) {}
-  rpc NotifyEndRace(stream SimpleRaceResult) returns (google.protobuf.Empty) {}
+  rpc NotifyEndRace(stream RaceResult) returns (google.protobuf.Empty) {}
 }
 
 //////////////////////////////
@@ -70,11 +70,12 @@ service Racing {
 message RaceMotorcycle {
   string username = 1;
   int32 motorcycle_id = 2;
-  int32 level = 3;
-  int32 engine = 4;
-  int32 brakes = 5;
-  int32 aerodynamics = 6;
-  int32 agility = 7;
+  string motorcycle_name = 3;
+  int32 level = 4;
+  int32 engine = 5;
+  int32 brakes = 6;
+  int32 aerodynamics = 7;
+  int32 agility = 8;
 }
 
 message RacingStatus {
@@ -82,18 +83,14 @@ message RacingStatus {
   string track_name = 2;
 }
 
-message SimpleRaceResult {
+message RaceResult {
   string username = 1;
   int32 motorcycle_id = 2;
   int32 position_in_race = 3;
   int32 total_motorcycles = 4;
-}
-
-message RaceResult {
-  RaceMotorcycle motorcycle = 1;
-  int32 position_in_race = 2;
-  int32 total_motorcycles = 3;
-  string track_name = 4;
+  string track_name = 5;
+  string motorcycle_name = 6;
+  int32 motorcycle_level = 7;
 }
 
 //////////////////////////////
@@ -124,6 +121,7 @@ message LeaderboardPosition {
 service Garage {
   rpc GetRemainingMotorcycles(PlayerUsername) returns (stream MotorcycleInfo) {}
   rpc GetUserMotorcycles(PlayerUsername) returns (stream OwnershipInfo) {}
+  rpc GetUserMotorcycleStats(PlayerMotorcycle) returns (OwnershipInfo) {}
   rpc GetUserMoney(PlayerUsername) returns (UserMoney) {}
   rpc IncreaseUserMoney(MoneyIncrease) returns (google.protobuf.Empty) {} // used also to create user in garage service database
   rpc BuyMotorcycle(PlayerMotorcycle) returns (google.protobuf.Empty) {}
@@ -150,7 +148,7 @@ message OwnershipInfo {
   string username = 1;
   int32 motorcycle_id = 2;
   int32 level = 3;
-  MotorcycleInfo motorcycle_info = 5;
+  MotorcycleInfo motorcycle_info = 4;
 }
 
 message PlayerMotorcycle {

@@ -26,6 +26,7 @@ func (s *Server) GetRemainingMotorcycles(in *pb.PlayerUsername, stream pb.Garage
 		return err
 	}
 
+	// TODO convert in RANGE
 	for i := 0; i < len(motorcycles); i++ {
 		stream.Send(&pb.MotorcycleInfo{
 			Id:                    int32(motorcycles[i].Id),
@@ -54,6 +55,7 @@ func (s *Server) GetUserMotorcycles(in *pb.PlayerUsername, stream pb.Garage_GetU
 		return err
 	}
 
+	// TODO convert in RANGE
 	for i := 0; i < len(ownerships); i++ {
 		stream.Send(&pb.OwnershipInfo{
 			Username:     ownerships[i].Username,
@@ -78,6 +80,36 @@ func (s *Server) GetUserMotorcycles(in *pb.PlayerUsername, stream pb.Garage_GetU
 	}
 
 	return nil
+}
+
+func (s *Server) GetUserMotorcycleStats(ctx context.Context, in *pb.PlayerMotorcycle) (*pb.OwnershipInfo, error) {
+	ownership, err := s.db.GetUserMotorcycleStats(in.Username, int(in.MotorcycleId))
+
+	if err != nil {
+		return nil, err
+	}
+
+	info := &pb.OwnershipInfo{
+		Username:     ownership.Username,
+		MotorcycleId: int32(ownership.MotorcycleId),
+		Level:        int32(ownership.Level),
+		MotorcycleInfo: &pb.MotorcycleInfo{
+			Id:                    int32(ownership.MotorcycleId),
+			Name:                  ownership.Name,
+			PriceToBuy:            int32(ownership.PriceToBuy),
+			PriceToUpgrade:        int32(ownership.PriceToUpgrade),
+			MaxLevel:              int32(ownership.MaxLevel),
+			Engine:                int32(ownership.Engine),
+			EngineIncrement:       int32(ownership.EngineIncrement),
+			Agility:               int32(ownership.Agility),
+			AgilityIncrement:      int32(ownership.AgilityIncrement),
+			Brakes:                int32(ownership.Brakes),
+			BrakesIncrement:       int32(ownership.BrakesIncrement),
+			Aerodynamics:          int32(ownership.Aerodynamics),
+			AerodynamicsIncrement: int32(ownership.AerodynamicsIncrement),
+		}}
+
+	return info, nil
 }
 
 func (s *Server) GetUserMoney(ctx context.Context, in *pb.PlayerUsername) (*pb.UserMoney, error) {
