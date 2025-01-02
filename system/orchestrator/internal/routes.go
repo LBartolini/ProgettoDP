@@ -126,7 +126,7 @@ func (r *MyRoutes) GarageBuyRoute(c *gin.Context) {
 		return
 	}
 
-	_, _ = r.orchestrator.BuyMotorcycle(username, id)
+	_ = r.orchestrator.BuyMotorcycle(username, id)
 
 	c.Redirect(http.StatusSeeOther, "/private/garage")
 }
@@ -140,7 +140,7 @@ func (r *MyRoutes) GarageUpgradeRoute(c *gin.Context) {
 		return
 	}
 
-	_, _ = r.orchestrator.UpgradeMotorcycle(username, id)
+	_ = r.orchestrator.UpgradeMotorcycle(username, id)
 
 	c.Redirect(http.StatusSeeOther, "/private/garage")
 }
@@ -165,7 +165,7 @@ func (r *MyRoutes) RaceStartRoute(c *gin.Context) {
 func (r *MyRoutes) LeaderboardRoute(c *gin.Context) {
 	leaderboard, err := r.orchestrator.GetFullLeaderboard()
 	if err != nil {
-		leaderboard = make([]*LeaderboardInfo, 0)
+		leaderboard = make([]*LeaderboardPosition, 0)
 	}
 
 	c.HTML(http.StatusOK, "leaderboard.html", gin.H{

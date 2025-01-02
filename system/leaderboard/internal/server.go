@@ -19,7 +19,7 @@ func NewServer(conn LeaderboardDB) *Server {
 	return &Server{db: conn}
 }
 
-func (s *Server) GetLeaderboard(_ *emptypb.Empty, stream pb.Leaderboard_GetLeaderboardServer) error {
+func (s *Server) GetFullLeaderboard(_ *emptypb.Empty, stream pb.Leaderboard_GetFullLeaderboardServer) error {
 	leaderboard := s.db.GetLeaderboard()
 
 	if len(leaderboard) == 0 || leaderboard == nil {

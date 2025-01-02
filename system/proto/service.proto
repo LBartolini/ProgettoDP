@@ -96,7 +96,7 @@ message RaceResult {
 //////////////////////////////
 
 service Leaderboard {
-  rpc GetLeaderboard(google.protobuf.Empty) returns (stream LeaderboardPosition) {}
+  rpc GetFullLeaderboard(google.protobuf.Empty) returns (stream LeaderboardPosition) {}
   rpc GetPlayer(PlayerUsername) returns (LeaderboardPosition) {}
   rpc AddPoints(PointIncrement) returns (google.protobuf.Empty) {} // used also to create user in leaderboard service database
 }

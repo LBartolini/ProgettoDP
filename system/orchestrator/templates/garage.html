@@ -57,26 +57,26 @@
             <tbody>
                 {{ range .owned }}
                 <tr>
-                    <td><b>{{.Name}}</b></td>
-                    <td><b>{{.Level}}</b> / {{.MaxLevel}} ({{.PriceToUpgrade}})
-                        {{ if ne .Level .MaxLevel }}
+                    <td><b>{{.Motorcycle.Name}}</b></td>
+                    <td><b>{{.Level}}</b> / {{.Motorcycle.MaxLevel}} ({{.Motorcycle.PriceToUpgrade}})
+                        {{ if ne .Level .Motorcycle.MaxLevel }}
                         <form action="/private/garage/upgrade" method="POST">
-                            <input type="hidden" name="id" value="{{.MotorcycleId}}">
+                            <input type="hidden" name="id" value="{{.Motorcycle.Id}}">
                             <input type="submit" value="Upgrade">
                         </form>
                         {{ end }}
                     </td>
-                    <td>{{.Engine}} ({{.EngineIncrement}})</td>
-                    <td>{{.Agility}} ({{.AgilityIncrement}})</td>
-                    <td>{{.Brakes}} ({{.BrakesIncrement}})</td>
-                    <td>{{.Aerodynamics}} ({{.AerodynamicsIncrement}})</td>
+                    <td>{{.Motorcycle.Engine}} ({{.Motorcycle.EngineIncrement}})</td>
+                    <td>{{.Motorcycle.Agility}} ({{.Motorcycle.AgilityIncrement}})</td>
+                    <td>{{.Motorcycle.Brakes}} ({{.Motorcycle.BrakesIncrement}})</td>
+                    <td>{{.Motorcycle.Aerodynamics}} ({{.Motorcycle.AerodynamicsIncrement}})</td>
                     <td> 
-                        {{ if .IsRacing }}
-                        <p>Racing in <b>{{.TrackName}}</b></p>
+                        {{ if .RacingStatus.Status }}
+                        <p>Racing in <b>{{.RacingStatus.TrackName}}</b></p>
                         {{ else }}
                         <form action="/private/race/start" method="POST">
                             <input type="submit" value="Start in Random Track">
-                            <input type="hidden" name="id" value="{{.MotorcycleId}}">
+                            <input type="hidden" name="id" value="{{.Motorcycle.Id}}">
                         </form>
                         {{ end }}
                     </td>
