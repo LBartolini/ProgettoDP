@@ -117,7 +117,7 @@ func (s *SQL_DB) CheckIsRacing(username string, MotorcycleId int) (track string,
 }
 
 func (s *SQL_DB) GetHistory(username string) ([]RaceResult, error) {
-	rows, err := s.db.Query("SELECT * FROM History WHERE PlayerUsername=?", username)
+	rows, err := s.db.Query("SELECT Position, TotalMotorcycles, PlayerUsername, TrackName, MotorcycleName, MotorcycleLevel FROM History WHERE PlayerUsername=? ORDER BY RaceId DESC", username)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (s *SQL_DB) GetHistory(username string) ([]RaceResult, error) {
 	var history []RaceResult
 	for rows.Next() {
 		var result RaceResult
-		err = rows.Scan(&result.Position, &result.TotalMotorcycles, &result.Username, &result.TrackName, &result.MotorcycleName, &result.MotorcycleName, &result.MotorcycleLevel)
+		err = rows.Scan(&result.Position, &result.TotalMotorcycles, &result.Username, &result.TrackName, &result.MotorcycleName, &result.MotorcycleLevel)
 		if err != nil {
 			return nil, err
 		}

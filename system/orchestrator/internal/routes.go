@@ -174,7 +174,12 @@ func (r *MyRoutes) LeaderboardRoute(c *gin.Context) {
 }
 
 func (r *MyRoutes) RaceHistoryRoute(c *gin.Context) {
-	// TODO:  fetch all races (all the users with motorcycle info that partecipated)
+	username := sessions.Default(c).Get("username").(string)
+	results, err := r.orchestrator.GetHistory(username)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/private")
+		return
+	}
 
-	c.HTML(http.StatusOK, "race_history.html", gin.H{})
+	c.HTML(http.StatusOK, "race_history.html", gin.H{"results": results})
 }

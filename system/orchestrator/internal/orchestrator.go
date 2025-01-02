@@ -18,6 +18,16 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+type RaceResult struct {
+	Username         string
+	MotorcycleId     int
+	MotorcycleName   string
+	MotorcycleLevel  int
+	Position         int
+	TotalMotorcycles int
+	TrackName        string
+}
+
 type LeaderboardInfo struct {
 	Username string
 	Points   int32
@@ -62,7 +72,8 @@ type Ownership struct {
 
 type Orchestrator struct {
 	pb.UnimplementedOrchestratorServer
-	balancer LoadBalancer
+	// TODO separate in different kind of orchestrator based on service task
+	balancer LoadBalancer // TODO ask directly to load balancer to do RPCs
 }
 
 func NewOrchestrator(balancer LoadBalancer) *Orchestrator {
@@ -124,12 +135,14 @@ func (o *Orchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*e
 }
 
 func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer) error {
+	log.Println("Race ended")
 	for {
 		race_result, err := stream.Recv()
 		if err == io.EOF {
 			return stream.SendAndClose(nil)
 		}
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 
@@ -147,6 +160,7 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		money_last, _ := strconv.Atoi(os.Getenv("MONEY_LAST"))
 		increase := &pb.MoneyIncrease{Username: race_result.Username,
 			Money: int32(o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), money_win, money_last))}
+		log.Printf("Race ended: increase money %s by %d", race_result.Username, increase.Money)
 		_, err = garage_client.IncreaseUserMoney(ctxAlive, increase)
 		if err != nil {
 			log.Println(err)
@@ -167,11 +181,15 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		points_last, _ := strconv.Atoi(os.Getenv("POINTS_LAST"))
 		points := &pb.PointIncrement{Username: race_result.Username,
 			Points: int32(o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), points_win, points_last))}
+		log.Printf("Race ended: increase points %s by %d", race_result.Username, points.Points)
 		_, err = leaderboard_client.AddPoints(ctxAliveLeaderboard, points)
 		if err != nil {
 			log.Println(err)
 			return err
 		}
+
+		cancel()
+		cancel_leaderboard()
 	}
 }
 
@@ -510,7 +528,7 @@ func (o *Orchestrator) StartMatchmaking(username string, MotorcycleId int) error
 	}
 
 	racing_client := pb.NewRacingClient(conn)
-	ctxAlive, cancel = context.WithTimeout(context.Background(), time.Second)
+	ctxAlive, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	_, err = racing_client.StartMatchmaking(ctxAlive, &pb.RaceMotorcycle{Username: username,
@@ -528,4 +546,44 @@ func (o *Orchestrator) StartMatchmaking(username string, MotorcycleId int) error
 	}
 
 	return nil
+}
+
+func (o *Orchestrator) GetHistory(username string) ([]*RaceResult, error) {
+	conn := o.balancer.GetRacing()
+	if conn == nil {
+		return nil, errors.New("unable to get connection to racing service")
+	}
+
+	racing_client := pb.NewRacingClient(conn)
+	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	stream, err := racing_client.GetHistory(ctxAlive, &pb.PlayerUsername{Username: username})
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*RaceResult
+	for {
+		r, err := stream.Recv()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Println(err)
+			return nil, err
+		} else {
+			res := &RaceResult{
+				Username:         r.Username,
+				MotorcycleId:     int(r.MotorcycleId),
+				MotorcycleName:   r.MotorcycleName,
+				MotorcycleLevel:  int(r.MotorcycleLevel),
+				Position:         int(r.PositionInRace),
+				TotalMotorcycles: int(r.TotalMotorcycles),
+				TrackName:        r.TrackName}
+
+			results = append(results, res)
+		}
+	}
+
+	return results, nil
 }

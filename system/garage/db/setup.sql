@@ -38,6 +38,15 @@ CREATE TABLE IF NOT EXISTS Owners (
   FOREIGN KEY (MotorcycleId) REFERENCES Motorcycles(Id)
 ) ENGINE=InnoDB;
 
+CREATE VIEW DetailedOwnership AS
+SELECT O.Username, O.MotorcycleId, O.Level, M.Name, M.PriceToBuy, M.PriceToUpgrade, M.MaxLevel, 
+  M.Engine+M.EngineIncrement*O.Level, M.EngineIncrement,
+  M.Agility+M.AgilityIncrement*O.Level, M.AgilityIncrement,
+  M.Brakes+M.BrakesIncrement*O.Level, M.BrakesIncrement,
+  M.Aerodynamics+M.AerodynamicsIncrement*O.Level, M.AerodynamicsIncrement
+FROM Owners O
+INNER JOIN Motorcycles M ON O.MotorcycleId=M.Id;
+
 DELIMITER $$
 
 CREATE TRIGGER OwnersBeforeUpdate

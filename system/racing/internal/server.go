@@ -23,7 +23,6 @@ func NewServer(conn RacingDB, orchestrator *grpc.ClientConn) *Server {
 }
 
 func (s *Server) CheckIsRacing(ctx context.Context, in *pb.PlayerMotorcycle) (*pb.RacingStatus, error) {
-	log.Printf("Checking if is Racing")
 	track, _ := s.db.CheckIsRacing(in.Username, int(in.MotorcycleId))
 
 	return &pb.RacingStatus{IsRacing: track != "", TrackName: track}, nil
@@ -51,6 +50,7 @@ func (s *Server) GetHistory(in *pb.PlayerUsername, stream pb.Racing_GetHistorySe
 }
 
 func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*emptypb.Empty, error) {
+	log.Println("Starting matchmaking")
 	track, left, err := s.db.StartMatchmaking(in.Username, &MotorcycleStats{
 		Id:           int(in.MotorcycleId),
 		Name:         in.MotorcycleName,
@@ -60,10 +60,16 @@ func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*
 		Aerodynamics: int(in.Aerodynamics),
 		Agility:      int(in.Agility)})
 
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
 	if left == 0 {
 		results, err := s.db.CompleteRace(track)
 
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 
@@ -73,11 +79,12 @@ func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*
 
 		stream, err := c.NotifyEndRace(ctx)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 
 		for _, v := range results {
-			stream.Send(&pb.RaceResult{
+			err = stream.Send(&pb.RaceResult{
 				Username:         v.Username,
 				MotorcycleId:     int32(v.MotorcycleId),
 				PositionInRace:   int32(v.Position),
@@ -86,14 +93,21 @@ func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*
 				MotorcycleName:   v.MotorcycleName,
 				MotorcycleLevel:  int32(v.MotorcycleLevel),
 			})
+
+			if err != nil {
+				log.Println(err)
+				return nil, err
+			}
 		}
+
 		stream.CloseSend()
+		time.Sleep(time.Second)
 	}
 
 	return nil, err
 }
 
 func (s *Server) StillAlive(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	log.Printf("Still Alive")
+	//log.Printf("Still Alive")
 	return nil, nil
 }

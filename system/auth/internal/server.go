@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"log"
 
 	pb "auth/proto"
 
@@ -32,6 +31,6 @@ func (s *Server) Register(ctx context.Context, in *pb.PlayerDetails) (*pb.AuthRe
 }
 
 func (s *Server) StillAlive(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	log.Printf("Still Alive")
+	//log.Printf("Still Alive")
 	return nil, nil
 }

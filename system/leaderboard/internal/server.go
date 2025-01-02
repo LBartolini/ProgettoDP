@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"errors"
-	"log"
 
 	pb "leaderboard/proto"
 
@@ -53,6 +52,6 @@ func (s *Server) AddPoints(ctx context.Context, in *pb.PointIncrement) (*emptypb
 }
 
 func (s *Server) StillAlive(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	log.Printf("Still Alive")
+	//log.Printf("Still Alive")
 	return nil, nil
 }

@@ -4,11 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <title>History</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        td {
+            background-color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
 </head>
 
 <body>
     <div id="content">
         <h1><a href="/">Home</a></h1>
+        <h1>History</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Motorcycle</th>
+                    <th>Track</th>
+                    <th>Position</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .results }}
+                <tr>
+                    <td><b>{{.MotorcycleName}} (Level: {{.MotorcycleLevel}})</b></td>
+                    <td>{{.TrackName}}</td>
+                    <td><b>{{.Position}}</b> / {{.TotalMotorcycles}}</td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
     </div>
 </body>
 

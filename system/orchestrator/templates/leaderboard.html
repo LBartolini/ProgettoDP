@@ -4,18 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <title>Leaderboard</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        td {
+            background-color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
 </head>
 
 <body>
     <div id="content">
         <h1><a href="/">Home</a></h1>
         <h1>Leaderboard</h1>
-        <ol>
-            {{ range .leaderboard }}
-                <li>{{.Username}} ({{.Points}} points)</li>
-            {{ end }}
-        </ol>
-        
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .leaderboard }}
+                <tr>
+                    <td><b>{{.Position}}</b></td>
+                    <td>{{.Username}}</td>
+                    <td>{{.Points}}</td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
     </div>
 </body>
 

@@ -60,8 +60,7 @@ func NewSQL_DB(conn *sql.DB) *SQL_DB {
 }
 
 func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
-	// TODO Base value + Level*Increment
-	rows, err := s.db.Query("SELECT * FROM Owners O INNER JOIN Motorcycles M ON O.MotorcycleId=M.Id WHERE O.Username=?", username)
+	rows, err := s.db.Query("SELECT * FROM DetailedOwnership WHERE Username=?", username)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +70,7 @@ func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
 
 	for rows.Next() {
 		var row Ownership
-		err := rows.Scan(&row.Username, &row.MotorcycleId, &row.Level, &row.MotorcycleId,
+		err := rows.Scan(&row.Username, &row.MotorcycleId, &row.Level,
 			&row.Name, &row.PriceToBuy, &row.PriceToUpgrade, &row.MaxLevel, &row.Engine, &row.EngineIncrement,
 			&row.Agility, &row.AgilityIncrement, &row.Brakes, &row.BrakesIncrement, &row.Aerodynamics, &row.AerodynamicsIncrement)
 		if err != nil {
@@ -88,10 +87,9 @@ func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
 }
 
 func (s *SQL_DB) GetUserMotorcycleStats(username string, MotorcycleId int) (*Ownership, error) {
-	// TODO Base value + Level*Increment
-	row := s.db.QueryRow("SELECT * FROM Owners O INNER JOIN Motorcycles M ON O.MotorcycleId=M.Id WHERE O.Username=? AND O.MotorcycleId=?", username, MotorcycleId)
+	row := s.db.QueryRow("SELECT * FROM DetailedOwnership WHERE Username=? AND MotorcycleId=?", username, MotorcycleId)
 	var owned Ownership
-	err := row.Scan(&owned.Username, &owned.MotorcycleId, &owned.Level, &owned.MotorcycleId,
+	err := row.Scan(&owned.Username, &owned.MotorcycleId, &owned.Level,
 		&owned.Name, &owned.PriceToBuy, &owned.PriceToUpgrade, &owned.MaxLevel, &owned.Engine, &owned.EngineIncrement,
 		&owned.Agility, &owned.AgilityIncrement, &owned.Brakes, &owned.BrakesIncrement, &owned.Aerodynamics, &owned.AerodynamicsIncrement)
 	if err != nil {
