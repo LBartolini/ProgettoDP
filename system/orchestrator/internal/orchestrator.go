@@ -10,7 +10,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -83,7 +82,6 @@ func (o *Orchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*e
 }
 
 func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer) error {
-	log.Println("Race ended")
 	for {
 		race_result, err := stream.Recv()
 		if err == io.EOF {
@@ -95,49 +93,26 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		}
 
 		// Garage: increase money
-		garage_conn := o.balancer.GetGarage()
-		if garage_conn == nil {
-			return errors.New("unable to get connection to garage service")
-		}
-
-		garage_client := pb.NewGarageClient(garage_conn)
-		ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-
 		money_win, _ := strconv.Atoi(os.Getenv("MONEY_WIN"))
 		money_last, _ := strconv.Atoi(os.Getenv("MONEY_LAST"))
-		increase := &pb.MoneyIncrease{Username: race_result.Username,
-			Money: int32(o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), money_win, money_last))}
-		log.Printf("Race ended: increase money %s by %d", race_result.Username, increase.Money)
-		_, err = garage_client.IncreaseUserMoney(ctxAlive, increase)
+		increase := o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), money_win, money_last)
+		err = o.balancer.GarageIncreaseUserMoney(race_result.Username, increase)
 		if err != nil {
 			log.Println(err)
 			return err
 		}
+		log.Printf("Race ended: increase money %s by %d", race_result.Username, increase)
 
 		// Leaderboard: increase points
-		leaderboard_conn := o.balancer.GetLeaderboard()
-		if leaderboard_conn == nil {
-			return errors.New("unable to get connection to garage service")
-		}
-
-		leaderboard_client := pb.NewLeaderboardClient(leaderboard_conn)
-		ctxAliveLeaderboard, cancel_leaderboard := context.WithTimeout(context.Background(), time.Second)
-		defer cancel_leaderboard()
-
 		points_win, _ := strconv.Atoi(os.Getenv("POINTS_WIN"))
 		points_last, _ := strconv.Atoi(os.Getenv("POINTS_LAST"))
-		points := &pb.PointIncrement{Username: race_result.Username,
-			Points: int32(o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), points_win, points_last))}
-		log.Printf("Race ended: increase points %s by %d", race_result.Username, points.Points)
-		_, err = leaderboard_client.AddPoints(ctxAliveLeaderboard, points)
+		increase = o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), points_win, points_last)
+		err = o.balancer.LeaderboardAddPoints(race_result.Username, increase)
 		if err != nil {
 			log.Println(err)
 			return err
 		}
-
-		cancel()
-		cancel_leaderboard()
+		log.Printf("Race ended: increase points %s by %d", race_result.Username, increase)
 	}
 }
 
