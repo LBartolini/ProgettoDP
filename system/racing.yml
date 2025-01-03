@@ -19,18 +19,6 @@ services:
       mode: replicated
       replicas: ${N_REPLICAS_RACING}
     profiles: ["run"]
-  
-  test_racing:
-    build:
-      context: racing
-      target: test
-    expose:
-      - "${SERVICE_PORT}"
-    environment:
-      SERVICE_PORT: ${SERVICE_PORT}
-    networks:
-      - "net"
-    profiles: ["test"]
 
   racing_db:
     image: mariadb
@@ -54,9 +42,45 @@ services:
     attach: false
     profiles: ["run"]
 
+  ############# TEST #############
+
+  test_racing:
+    build:
+      context: racing
+      target: test
+    depends_on:
+      test_racing_db:
+        condition: service_healthy
+    networks:
+      - "test_net"
+    profiles: ["test"]
+
+  test_racing_db:
+    image: mariadb
+    restart: always
+    expose:
+      - "3306"
+    healthcheck:
+        test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+        start_period: 1m
+        start_interval: 10s
+        interval: 1m
+        timeout: 5s
+        retries: 10
+    environment:
+      MARIADB_ROOT_PASSWORD: admin
+    volumes:
+      - ./racing/db/setup_test.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - "test_net"
+    attach: false
+    profiles: ["test"]
+
 networks:
   net:
     name: net
+  test_net:
+    name: test_net
 
 
 volumes:
