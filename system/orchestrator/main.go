@@ -47,7 +47,7 @@ func main() {
 		private.GET("/history", routes.RaceHistoryRoute)
 	}
 
-	r.Run("0.0.0.0:8080")
+	r.Run(fmt.Sprintf("0.0.0.0:%s", os.Getenv("WEB_PORT")))
 }
 
 func startOrchestratorService(orchestrator *internal.Orchestrator) {

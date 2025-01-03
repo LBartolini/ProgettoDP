@@ -19,7 +19,6 @@ import (
 
 type Orchestrator struct {
 	pb.UnimplementedOrchestratorServer
-	// TODO separate in different kind of orchestrator based on service task
 	balancer LoadBalancer
 }
 

@@ -5,11 +5,12 @@ services:
       target: run
     restart: always
     ports:
-      - 5000:8080
+      - ${FORWARDED_WEB_PORT}:${WEB_PORT}
     expose:
       - "${SERVICE_PORT}"
     environment:
       SESSION_KEY: secret
+      WEB_PORT: ${WEB_PORT}
       SERVICE_PORT: ${SERVICE_PORT}
       START_MONEY: ${START_MONEY}
       MONEY_WIN: ${MONEY_WIN}
