@@ -25,22 +25,21 @@ func (s *Server) GetRemainingMotorcycles(in *pb.PlayerUsername, stream pb.Garage
 		return err
 	}
 
-	// TODO convert in RANGE
-	for i := 0; i < len(motorcycles); i++ {
+	for _, v := range motorcycles {
 		stream.Send(&pb.MotorcycleInfo{
-			Id:                    int32(motorcycles[i].Id),
-			Name:                  motorcycles[i].Name,
-			PriceToBuy:            int32(motorcycles[i].PriceToBuy),
-			PriceToUpgrade:        int32(motorcycles[i].PriceToUpgrade),
-			MaxLevel:              int32(motorcycles[i].MaxLevel),
-			Engine:                int32(motorcycles[i].Engine),
-			EngineIncrement:       int32(motorcycles[i].EngineIncrement),
-			Agility:               int32(motorcycles[i].Agility),
-			AgilityIncrement:      int32(motorcycles[i].AgilityIncrement),
-			Brakes:                int32(motorcycles[i].Brakes),
-			BrakesIncrement:       int32(motorcycles[i].BrakesIncrement),
-			Aerodynamics:          int32(motorcycles[i].Aerodynamics),
-			AerodynamicsIncrement: int32(motorcycles[i].AerodynamicsIncrement),
+			Id:                    int32(v.Id),
+			Name:                  v.Name,
+			PriceToBuy:            int32(v.PriceToBuy),
+			PriceToUpgrade:        int32(v.PriceToUpgrade),
+			MaxLevel:              int32(v.MaxLevel),
+			Engine:                int32(v.Engine),
+			EngineIncrement:       int32(v.EngineIncrement),
+			Agility:               int32(v.Agility),
+			AgilityIncrement:      int32(v.AgilityIncrement),
+			Brakes:                int32(v.Brakes),
+			BrakesIncrement:       int32(v.BrakesIncrement),
+			Aerodynamics:          int32(v.Aerodynamics),
+			AerodynamicsIncrement: int32(v.AerodynamicsIncrement),
 		})
 	}
 
@@ -54,26 +53,25 @@ func (s *Server) GetUserMotorcycles(in *pb.PlayerUsername, stream pb.Garage_GetU
 		return err
 	}
 
-	// TODO convert in RANGE
-	for i := 0; i < len(ownerships); i++ {
+	for _, v := range ownerships {
 		stream.Send(&pb.OwnershipInfo{
-			Username:     ownerships[i].Username,
-			MotorcycleId: int32(ownerships[i].MotorcycleId),
-			Level:        int32(ownerships[i].Level),
+			Username:     v.Username,
+			MotorcycleId: int32(v.MotorcycleId),
+			Level:        int32(v.Level),
 			MotorcycleInfo: &pb.MotorcycleInfo{
-				Id:                    int32(ownerships[i].MotorcycleId),
-				Name:                  ownerships[i].Name,
-				PriceToBuy:            int32(ownerships[i].PriceToBuy),
-				PriceToUpgrade:        int32(ownerships[i].PriceToUpgrade),
-				MaxLevel:              int32(ownerships[i].MaxLevel),
-				Engine:                int32(ownerships[i].Engine),
-				EngineIncrement:       int32(ownerships[i].EngineIncrement),
-				Agility:               int32(ownerships[i].Agility),
-				AgilityIncrement:      int32(ownerships[i].AgilityIncrement),
-				Brakes:                int32(ownerships[i].Brakes),
-				BrakesIncrement:       int32(ownerships[i].BrakesIncrement),
-				Aerodynamics:          int32(ownerships[i].Aerodynamics),
-				AerodynamicsIncrement: int32(ownerships[i].AerodynamicsIncrement),
+				Id:                    int32(v.MotorcycleId),
+				Name:                  v.Name,
+				PriceToBuy:            int32(v.PriceToBuy),
+				PriceToUpgrade:        int32(v.PriceToUpgrade),
+				MaxLevel:              int32(v.MaxLevel),
+				Engine:                int32(v.Engine),
+				EngineIncrement:       int32(v.EngineIncrement),
+				Agility:               int32(v.Agility),
+				AgilityIncrement:      int32(v.AgilityIncrement),
+				Brakes:                int32(v.Brakes),
+				BrakesIncrement:       int32(v.BrakesIncrement),
+				Aerodynamics:          int32(v.Aerodynamics),
+				AerodynamicsIncrement: int32(v.AerodynamicsIncrement),
 			},
 		})
 	}
