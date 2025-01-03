@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Server struct {
@@ -43,6 +44,7 @@ func (s *Server) GetHistory(in *pb.PlayerUsername, stream pb.Racing_GetHistorySe
 			TrackName:        v.TrackName,
 			MotorcycleName:   v.MotorcycleName,
 			MotorcycleLevel:  int32(v.MotorcycleLevel),
+			Time:             timestamppb.New(v.Time),
 		})
 	}
 
@@ -58,7 +60,8 @@ func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*
 		Engine:       int(in.Engine),
 		Brakes:       int(in.Brakes),
 		Aerodynamics: int(in.Aerodynamics),
-		Agility:      int(in.Agility)})
+		Agility:      int(in.Agility),
+	})
 
 	if err != nil {
 		log.Println(err)
@@ -92,6 +95,7 @@ func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*
 				TrackName:        v.TrackName,
 				MotorcycleName:   v.MotorcycleName,
 				MotorcycleLevel:  int32(v.MotorcycleLevel),
+				Time:             timestamppb.New(v.Time),
 			})
 
 			if err != nil {

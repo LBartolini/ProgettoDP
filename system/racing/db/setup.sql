@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS History (
   TrackName varchar(32) NOT NULL,
   MotorcycleName varchar(32) NOT NULL,
   MotorcycleLevel int NOT NULL,
+  Time timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (RaceId)
 ) ENGINE=InnoDB;
 

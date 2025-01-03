@@ -17,6 +17,7 @@ syntax = "proto3";
 option go_package = "system/proto";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 package proto;
 
@@ -91,6 +92,7 @@ message RaceResult {
   string track_name = 5;
   string motorcycle_name = 6;
   int32 motorcycle_level = 7;
+  google.protobuf.Timestamp time = 8;
 }
 
 //////////////////////////////

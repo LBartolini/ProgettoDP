@@ -24,6 +24,7 @@ type RaceResult struct {
 	Position         int
 	TotalMotorcycles int
 	TrackName        string
+	Time             time.Time
 }
 
 type RacingDB interface {
@@ -72,7 +73,7 @@ func (s *SQL_DB) CompleteRace(track int) ([]RaceResult, error) {
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.Query("SELECT PlayerUsername, MotorcycleId, Position, MaxMotorcycles, MotorcycleLevel, MotorcycleName, Trackname FROM DetailedMatchmaking WHERE TrackId=?", track)
+	rows, err := tx.Query("SELECT PlayerUsername, MotorcycleId, Position, MaxMotorcycles, MotorcycleLevel, MotorcycleName, Trackname, CURRENT_TIMESTAMP AS Time FROM DetailedMatchmaking WHERE TrackId=?", track)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +82,7 @@ func (s *SQL_DB) CompleteRace(track int) ([]RaceResult, error) {
 	var res []RaceResult
 	for rows.Next() {
 		var result RaceResult
-		err = rows.Scan(&result.Username, &result.MotorcycleId, &result.Position, &result.TotalMotorcycles, &result.MotorcycleLevel, &result.MotorcycleName, &result.TrackName)
+		err = rows.Scan(&result.Username, &result.MotorcycleId, &result.Position, &result.TotalMotorcycles, &result.MotorcycleLevel, &result.MotorcycleName, &result.TrackName, &result.Time)
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +118,7 @@ func (s *SQL_DB) CheckIsRacing(username string, MotorcycleId int) (track string,
 }
 
 func (s *SQL_DB) GetHistory(username string) ([]RaceResult, error) {
-	rows, err := s.db.Query("SELECT Position, TotalMotorcycles, PlayerUsername, TrackName, MotorcycleName, MotorcycleLevel FROM History WHERE PlayerUsername=? ORDER BY RaceId DESC", username)
+	rows, err := s.db.Query("SELECT Position, TotalMotorcycles, PlayerUsername, TrackName, MotorcycleName, MotorcycleLevel, Time FROM History WHERE PlayerUsername=? ORDER BY RaceId DESC", username)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +127,7 @@ func (s *SQL_DB) GetHistory(username string) ([]RaceResult, error) {
 	var history []RaceResult
 	for rows.Next() {
 		var result RaceResult
-		err = rows.Scan(&result.Position, &result.TotalMotorcycles, &result.Username, &result.TrackName, &result.MotorcycleName, &result.MotorcycleLevel)
+		err = rows.Scan(&result.Position, &result.TotalMotorcycles, &result.Username, &result.TrackName, &result.MotorcycleName, &result.MotorcycleLevel, &result.Time)
 		if err != nil {
 			return nil, err
 		}

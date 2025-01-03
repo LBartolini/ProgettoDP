@@ -55,6 +55,7 @@ type RaceResult struct {
 	Position         int
 	TotalMotorcycles int
 	TrackName        string
+	Time             time.Time
 }
 
 type LoadBalancer interface {
@@ -537,7 +538,9 @@ func (lb *RandomLoadBalancer) RacingGetHistory(username string) ([]*RaceResult, 
 				MotorcycleLevel:  int(r.MotorcycleLevel),
 				Position:         int(r.PositionInRace),
 				TotalMotorcycles: int(r.TotalMotorcycles),
-				TrackName:        r.TrackName}
+				TrackName:        r.TrackName,
+				Time:             r.Time.AsTime(),
+			}
 
 			results = append(results, res)
 		}

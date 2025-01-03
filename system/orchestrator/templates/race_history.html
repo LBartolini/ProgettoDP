@@ -44,6 +44,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>Time</th>
                     <th>Motorcycle</th>
                     <th>Track</th>
                     <th>Position</th>
@@ -52,6 +53,7 @@
             <tbody>
                 {{ range .results }}
                 <tr>
+                    <td>{{.Time}}</td>
                     <td><b>{{.MotorcycleName}} (Level: {{.MotorcycleLevel}})</b></td>
                     <td>{{.TrackName}}</td>
                     <td><b>{{.Position}}</b> / {{.TotalMotorcycles}}</td>

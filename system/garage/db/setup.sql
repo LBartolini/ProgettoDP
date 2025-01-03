@@ -67,6 +67,6 @@ END$$
 
 DELIMITER ;
 
-INSERT INTO Users VALUES ("Lorenzo", 200), ("Matteo", 130);
+INSERT INTO Users VALUES ("Lorenzo", 500), ("Matteo", 500);
 INSERT INTO Motorcycles VALUES (1, "Ducati Panigale V4", 100, 20, 15, 10, 3, 8, 2, 12, 2, 15, 5), (2, "KTM SuperDuke 1290 RR", 120, 15, 10, 16, 5, 5, 1, 10, 3, 8, 3);
 INSERT INTO Owners VALUES ("Lorenzo", 1, 5), ("Matteo", 2, 4);
