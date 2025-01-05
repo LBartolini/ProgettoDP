@@ -32,17 +32,17 @@ down:
 
 #### TEST ####
 
-build_test:
+build_test: down_test
 	docker compose --profile test $(foreach module,$(system_modules),-f system/$(module).yml) build $(foreach service,$(services), test_$(service))
 
-test:
+test: build_test
 	docker compose --profile test $(foreach module,$(system_modules),-f system/$(module).yml) up $(foreach service,$(services), test_$(service))
 
 stop_test:
-	docker compose --profile run $(foreach module,$(system_modules),-f system/$(module).yml) stop $(foreach service,$(services), test_$(service))
+	docker compose --profile run $(foreach module,$(system_modules),-f system/$(module).yml) stop
 
 down_test:
-	docker compose --profile test $(foreach module,$(system_modules),-f system/$(module).yml) down --volumes $(foreach service,$(services), test_$(service))
+	docker compose --profile test $(foreach module,$(system_modules),-f system/$(module).yml) down --volumes
 
 #### SETUP ####
 

@@ -32,11 +32,9 @@
 
 - make update_proto (compile protobuf definitions)
 
-- make build_test (build containers)
+- (make build_test already performed when using *make test*)
 
 - make test
-
-- make stop_test (to stop containers)
 
 - make down_test (to stop containers and clean the system from volumes and networks)
 

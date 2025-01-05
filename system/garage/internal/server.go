@@ -130,6 +130,5 @@ func (s *Server) UpgradeMotorcycle(ctx context.Context, in *pb.PlayerMotorcycle)
 }
 
 func (s *Server) StillAlive(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	//log.Printf("Still Alive")
 	return nil, nil
 }

@@ -52,6 +52,5 @@ func (s *Server) AddPoints(ctx context.Context, in *pb.PointIncrement) (*emptypb
 }
 
 func (s *Server) StillAlive(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	//log.Printf("Still Alive")
 	return nil, nil
 }
