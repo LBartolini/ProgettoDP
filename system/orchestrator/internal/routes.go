@@ -2,6 +2,7 @@ package internal
 
 import (
 	"net/http"
+	"orchestrator/internal/services"
 	"strconv"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -103,11 +104,11 @@ func (r *MyRoutes) GarageRoute(c *gin.Context) {
 	money, _ := r.orchestrator.GetUserMoney(username)
 	owned, err := r.orchestrator.GetUserMotorcycles(username)
 	if err != nil {
-		owned = make([]*Ownership, 0)
+		owned = make([]*services.Ownership, 0)
 	}
 	not_owned, err := r.orchestrator.GetRemainingMotorcycles(username)
 	if err != nil {
-		not_owned = make([]*Motorcycle, 0)
+		not_owned = make([]*services.Motorcycle, 0)
 	}
 
 	c.HTML(http.StatusOK, "garage.html", gin.H{
@@ -165,7 +166,7 @@ func (r *MyRoutes) RaceStartRoute(c *gin.Context) {
 func (r *MyRoutes) LeaderboardRoute(c *gin.Context) {
 	leaderboard, err := r.orchestrator.GetFullLeaderboard()
 	if err != nil {
-		leaderboard = make([]*LeaderboardPosition, 0)
+		leaderboard = make([]*services.LeaderboardPosition, 0)
 	}
 
 	c.HTML(http.StatusOK, "leaderboard.html", gin.H{
