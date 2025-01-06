@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram name="Pagina-1" id="oMl4hfG4BsTxHnoN9xjV">
-        <mxGraphModel dx="910" dy="797" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="1574" dy="1091" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -78,8 +78,8 @@
                         <mxPoint x="167.6825761932145" y="132.72628037383177" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="Vqn2Hrog8xPaC8msSPWF-155" value="&lt;ul&gt;&lt;li&gt;Login(PlayerCredentials) -&amp;gt; LoginResult&lt;br&gt;&lt;/li&gt;&lt;li&gt;Register(PlayerDetails) -&amp;gt; PlayerID&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=0;connectable=0;" parent="Vqn2Hrog8xPaC8msSPWF-13" vertex="1">
-                    <mxGeometry x="448.78378378378375" y="83.08000000000001" width="317.4324324324324" height="50" as="geometry"/>
+                <mxCell id="Vqn2Hrog8xPaC8msSPWF-155" value="&lt;ul&gt;&lt;li&gt;Login(PlayerCredentials) -&amp;gt; AuthResult&lt;br&gt;&lt;/li&gt;&lt;li&gt;Register(PlayerDetails) -&amp;gt; AuthResult&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="Vqn2Hrog8xPaC8msSPWF-13" vertex="1">
+                    <mxGeometry x="448.78" y="72.73" width="317.43" height="67.27" as="geometry"/>
                 </mxCell>
                 <mxCell id="Vqn2Hrog8xPaC8msSPWF-51" value="" style="group;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=0;connectable=0;" parent="Vqn2Hrog8xPaC8msSPWF-32" vertex="1" connectable="0">
                     <mxGeometry x="370" y="340" width="830" height="216.16" as="geometry"/>
@@ -134,8 +134,8 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="Vqn2Hrog8xPaC8msSPWF-157" value="&lt;ul&gt;&lt;li&gt;FindRace(PlayerID, MotorcycleID) -&amp;gt; RaceID&lt;br&gt;&lt;/li&gt;&lt;li&gt;GetRaceResult(RaceID) -&amp;gt; RaceResult&lt;/li&gt;&lt;li&gt;StartRace(RaceID)&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=0;connectable=0;" parent="Vqn2Hrog8xPaC8msSPWF-51" vertex="1">
-                    <mxGeometry x="482.29729729729735" y="72.52948493457944" width="325.2702702702703" height="71.1094683364486" as="geometry"/>
+                <mxCell id="Vqn2Hrog8xPaC8msSPWF-157" value="&lt;ul&gt;&lt;li&gt;StartMatchmaking(RaceMotorcycle)&lt;br&gt;&lt;/li&gt;&lt;li&gt;CheckIsracing(PlayerMotorcycle) -&amp;gt; RacingStatus&lt;/li&gt;&lt;li&gt;GetHistory(PlayerUsername) -&amp;gt; stream RaceResult&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="Vqn2Hrog8xPaC8msSPWF-51" vertex="1">
+                    <mxGeometry x="460" y="30" width="347.57" height="180" as="geometry"/>
                 </mxCell>
                 <mxCell id="Vqn2Hrog8xPaC8msSPWF-92" value="" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=0;connectable=0;" parent="Vqn2Hrog8xPaC8msSPWF-32" vertex="1">
                     <mxGeometry x="370" y="570" width="840" height="216.16" as="geometry"/>
@@ -237,11 +237,11 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="Vqn2Hrog8xPaC8msSPWF-158" value="&lt;ul&gt;&lt;li&gt;GetLeaderboard() -&amp;gt; Leaderboard&lt;/li&gt;&lt;li&gt;GetPlayerRank(PlayerID) -&amp;gt;&amp;nbsp; Rank&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=0;connectable=0;" parent="Vqn2Hrog8xPaC8msSPWF-32" vertex="1">
-                    <mxGeometry x="859.9999999999999" y="638.89" width="290" height="50" as="geometry"/>
+                <mxCell id="Vqn2Hrog8xPaC8msSPWF-158" value="&lt;ul&gt;&lt;li&gt;GetFullLeaderboard() -&amp;gt; stream LeaderboardPosition&lt;/li&gt;&lt;li&gt;GetPlayer(PlayerUsername) -&amp;gt;&amp;nbsp; LeaderboardPosition&lt;br&gt;&lt;/li&gt;&lt;li&gt;AddPoints(PointIncrement)&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="Vqn2Hrog8xPaC8msSPWF-32" vertex="1">
+                    <mxGeometry x="810" y="617.53" width="390" height="121.11" as="geometry"/>
                 </mxCell>
-                <mxCell id="Vqn2Hrog8xPaC8msSPWF-159" value="&lt;ul&gt;&lt;li&gt;ListMotorcycles(PlayerID) -&amp;gt; MotorcycleList&lt;br&gt;&lt;/li&gt;&lt;li&gt;PurchaseMotorcycle(PlayerID, MotorcycleDetails) -&amp;gt; MotorcycleID&lt;/li&gt;&lt;li&gt;UpgradeMotorcycle(PlayerID, MotorcycleID, UpgradeType)&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=0;connectable=0;" parent="Vqn2Hrog8xPaC8msSPWF-32" vertex="1">
-                    <mxGeometry x="770" y="843.23" width="410" height="105.15" as="geometry"/>
+                <mxCell id="Vqn2Hrog8xPaC8msSPWF-159" value="&lt;ul&gt;&lt;li&gt;GetUserMotorcycles(PlayerUsername) -&amp;gt; stream OwnershipInfo&lt;br&gt;&lt;/li&gt;&lt;li&gt;GetRemainingMotorcycle(PlayerUsername) -&amp;gt; stream MotorcycleInfo&lt;/li&gt;&lt;li&gt;GetUserMotorcycleStats(PlayerMotorcycle) -&amp;gt; OwnershipInfo&lt;br&gt;&lt;/li&gt;&lt;li&gt;GetUserMoney(PlayerUsername) -&amp;gt; UserMoney&lt;/li&gt;&lt;li&gt;IncreaseUserMoney(MoneyIncrease)&lt;/li&gt;&lt;li&gt;BuyMotorcycle(PlayerMotorcycle)&lt;/li&gt;&lt;li&gt;UpgradeMotorcycle(PlayerMotorcycle)&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="Vqn2Hrog8xPaC8msSPWF-32" vertex="1">
+                    <mxGeometry x="770" y="810" width="410" height="190" as="geometry"/>
                 </mxCell>
                 <mxCell id="Vqn2Hrog8xPaC8msSPWF-6" value="" style="group;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=0;connectable=0;" parent="Vqn2Hrog8xPaC8msSPWF-32" vertex="1" connectable="0">
                     <mxGeometry x="50" y="185" width="220" height="170" as="geometry"/>
@@ -272,13 +272,13 @@
                 <mxCell id="Vqn2Hrog8xPaC8msSPWF-160" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;connectable=1;" parent="Vqn2Hrog8xPaC8msSPWF-6" vertex="1">
                     <mxGeometry x="25" y="55.73" width="65" height="65" as="geometry"/>
                 </mxCell>
-                <mxCell id="15" value="Webserver" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="Vqn2Hrog8xPaC8msSPWF-6">
+                <mxCell id="15" value="Webserver" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="Vqn2Hrog8xPaC8msSPWF-6" vertex="1">
                     <mxGeometry x="25" y="78.02777777777776" width="60.000000000000014" height="20.416666666666668" as="geometry"/>
                 </mxCell>
-                <mxCell id="16" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="Vqn2Hrog8xPaC8msSPWF-6">
+                <mxCell id="16" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" parent="Vqn2Hrog8xPaC8msSPWF-6" vertex="1">
                     <mxGeometry x="90" y="53.24000000000001" width="80" height="70" as="geometry"/>
                 </mxCell>
-                <mxCell id="17" value="Orchestrator" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="Vqn2Hrog8xPaC8msSPWF-6">
+                <mxCell id="17" value="Orchestrator" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="Vqn2Hrog8xPaC8msSPWF-6" vertex="1">
                     <mxGeometry x="100" y="78.02777777777777" width="60.000000000000014" height="20.416666666666668" as="geometry"/>
                 </mxCell>
                 <mxCell id="Vqn2Hrog8xPaC8msSPWF-141" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=0;connectable=0;" parent="Vqn2Hrog8xPaC8msSPWF-32" source="Vqn2Hrog8xPaC8msSPWF-137" target="Vqn2Hrog8xPaC8msSPWF-11" edge="1">

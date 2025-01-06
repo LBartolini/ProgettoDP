@@ -2,6 +2,10 @@
 
 ![alt text](architecture.png "Architecture")
 
+## Description
+
+Motorcycle Manager is an online game that allows the users to register in the system, buy and upgrade motorcycles, start a race and keep track of the wins in the history, and more importantly being the best driver in the leaderboard.
+
 ## Prerequisites
 
 - docker
