@@ -73,4 +73,4 @@ CREATE TABLE IF NOT EXISTS History (
   PRIMARY KEY (RaceId)
 ) ENGINE=InnoDB;
 
-INSERT INTO Tracks VALUES (1, "Mugello", 3, 5, 5, 5, 5), (2, "Franciacorta", 2, 2, 4, 1, 1);
+INSERT INTO Tracks VALUES (1, "Mugello", 2, 5, 5, 5, 5);

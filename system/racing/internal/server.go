@@ -112,6 +112,5 @@ func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*
 }
 
 func (s *Server) StillAlive(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	//log.Printf("Still Alive")
 	return nil, nil
 }

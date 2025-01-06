@@ -48,7 +48,7 @@ func (s *SQL_DB) StartMatchmaking(username string, stats *MotorcycleStats) (trac
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return -1, 0, err
+		return -1, -1, err
 	}
 	defer tx.Rollback()
 
