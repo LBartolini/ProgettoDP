@@ -13,4 +13,4 @@ CREATE VIEW RankedUsers AS
 SELECT Username, Points, RANK() OVER (ORDER BY Points DESC) AS Position
 FROM Users;
 
-INSERT INTO Users VALUES ("Lorenzo", 10), ("Matteo", 20);
+INSERT INTO Users VALUES ("user", 10);
