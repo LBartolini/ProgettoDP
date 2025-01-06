@@ -38,6 +38,10 @@
 
 - make down_test (to stop containers and clean the system from volumes and networks)
 
+## Steps for cleaning
+
+- make clean
+
 ## Environment Variables
 
 In the .env file it is possible to edit the environment variables (such as the number of replicas per service).
