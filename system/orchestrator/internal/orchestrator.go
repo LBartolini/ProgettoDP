@@ -45,7 +45,9 @@ func (o *Orchestrator) RegisterAuth(ctx context.Context, _ *emptypb.Empty) (*emp
 		return nil, err
 	}
 
-	return nil, o.balancer.RegisterAuth(client)
+	o.balancer.RegisterAuth(client)
+
+	return nil, nil
 }
 
 func (o *Orchestrator) RegisterGarage(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
@@ -56,7 +58,9 @@ func (o *Orchestrator) RegisterGarage(ctx context.Context, _ *emptypb.Empty) (*e
 		return nil, err
 	}
 
-	return nil, o.balancer.RegisterGarage(client)
+	o.balancer.RegisterGarage(client)
+
+	return nil, nil
 }
 
 func (o *Orchestrator) RegisterLeaderboard(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
@@ -67,7 +71,9 @@ func (o *Orchestrator) RegisterLeaderboard(ctx context.Context, _ *emptypb.Empty
 		return nil, err
 	}
 
-	return nil, o.balancer.RegisterLeaderboard(client)
+	o.balancer.RegisterLeaderboard(client)
+
+	return nil, nil
 }
 
 func (o *Orchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
@@ -78,7 +84,9 @@ func (o *Orchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*e
 		return nil, err
 	}
 
-	return nil, o.balancer.RegisterRacing(client)
+	o.balancer.RegisterRacing(client)
+
+	return nil, nil
 }
 
 func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer) error {

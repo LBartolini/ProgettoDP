@@ -13,16 +13,16 @@ import (
 )
 
 type LoadBalancer interface {
-	RegisterAuth(conn *grpc.ClientConn) error
+	RegisterAuth(conn *grpc.ClientConn)
 	GetAuth() *grpc.ClientConn
 
-	RegisterLeaderboard(conn *grpc.ClientConn) error
+	RegisterLeaderboard(conn *grpc.ClientConn)
 	GetLeaderboard() *grpc.ClientConn
 
-	RegisterGarage(conn *grpc.ClientConn) error
+	RegisterGarage(conn *grpc.ClientConn)
 	GetGarage() *grpc.ClientConn
 
-	RegisterRacing(conn *grpc.ClientConn) error
+	RegisterRacing(conn *grpc.ClientConn)
 	GetRacing() *grpc.ClientConn
 
 	testConnection(*grpc.ClientConn) error
@@ -37,7 +37,7 @@ func NewRandomLoadBalancer() *RandomLoadBalancer {
 	return &RandomLoadBalancer{services: make(map[string][]*grpc.ClientConn)}
 }
 
-func (lb *RandomLoadBalancer) registerService(name string, conn *grpc.ClientConn) error {
+func (lb *RandomLoadBalancer) registerService(name string, conn *grpc.ClientConn) {
 	lb.mu.Lock()
 	defer lb.mu.Unlock()
 
@@ -45,7 +45,6 @@ func (lb *RandomLoadBalancer) registerService(name string, conn *grpc.ClientConn
 		lb.services[name] = []*grpc.ClientConn{}
 	}
 	lb.services[name] = append(lb.services[name], conn)
-	return nil
 }
 
 func removeAtIndex(slice []*grpc.ClientConn, index int) []*grpc.ClientConn {
@@ -77,32 +76,32 @@ func (lb *RandomLoadBalancer) getService(name string) *grpc.ClientConn {
 	return conn
 }
 
-func (lb *RandomLoadBalancer) RegisterAuth(conn *grpc.ClientConn) error {
-	return lb.registerService("auth", conn)
+func (lb *RandomLoadBalancer) RegisterAuth(conn *grpc.ClientConn) {
+	lb.registerService("auth", conn)
 }
 
 func (lb *RandomLoadBalancer) GetAuth() *grpc.ClientConn {
 	return lb.getService("auth")
 }
 
-func (lb *RandomLoadBalancer) RegisterLeaderboard(conn *grpc.ClientConn) error {
-	return lb.registerService("leaderboard", conn)
+func (lb *RandomLoadBalancer) RegisterLeaderboard(conn *grpc.ClientConn) {
+	lb.registerService("leaderboard", conn)
 }
 
 func (lb *RandomLoadBalancer) GetLeaderboard() *grpc.ClientConn {
 	return lb.getService("leaderboard")
 }
 
-func (lb *RandomLoadBalancer) RegisterRacing(conn *grpc.ClientConn) error {
-	return lb.registerService("racing", conn)
+func (lb *RandomLoadBalancer) RegisterRacing(conn *grpc.ClientConn) {
+	lb.registerService("racing", conn)
 }
 
 func (lb *RandomLoadBalancer) GetRacing() *grpc.ClientConn {
 	return lb.getService("racing")
 }
 
-func (lb *RandomLoadBalancer) RegisterGarage(conn *grpc.ClientConn) error {
-	return lb.registerService("garage", conn)
+func (lb *RandomLoadBalancer) RegisterGarage(conn *grpc.ClientConn) {
+	lb.registerService("garage", conn)
 }
 
 func (lb *RandomLoadBalancer) GetGarage() *grpc.ClientConn {
