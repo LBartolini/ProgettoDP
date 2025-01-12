@@ -1,12 +1,15 @@
-FROM golang:1.23-bookworm AS build
+FROM golang:1.23-alpine AS build
 WORKDIR /app
-COPY go.mod .
-COPY go.sum .
+COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./main
 
-FROM build AS test
+FROM golang:1.23-alpine AS test
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . ./
 CMD ["go", "test", "-v", "./..."]
 
 FROM alpine:latest AS run

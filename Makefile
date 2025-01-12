@@ -44,9 +44,9 @@ stop_test:
 down_test:
 	docker compose --profile test $(foreach module,$(system_modules),-f system/$(module).yml) down --volumes
 
-#### SETUP ####
+#### SETUP and CLEANUP ####
 
-clean: stop stop_test down down_test
+clean: stop stop_test down down_test remove_compiler
 
 update_proto: mkdir_proto compile_protobuf
 	$(foreach module,$(system_modules),cp -r system/proto/. system/$(module)/proto ;)
@@ -56,6 +56,9 @@ compile_protobuf: pull_compiler
 
 pull_compiler:
 	docker pull namely/protoc-all
+
+remove_compiler:
+	docker rmi -f namely/protoc-all
 
 mkdir_proto:
 	mkdir -p $(foreach module,$(system_modules), system/$(module)/proto)

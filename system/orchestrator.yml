@@ -20,25 +20,7 @@ services:
     networks:
       - "net"
     profiles: ["run"]
-  
-  ############# TEST #############
-
-  test_orchestrator:
-    build: 
-      context: orchestrator
-      target: test
-    environment:
-      START_MONEY: ${START_MONEY}
-      MONEY_WIN: ${MONEY_WIN}
-      MONEY_LAST: ${MONEY_LAST}
-      POINTS_WIN: ${POINTS_WIN}
-      POINTS_LAST: ${POINTS_LAST}
-    networks:
-      - "test_net"
-    profiles: ["test"]
 
 networks:
   net:
     name: net
-  test_net:
-    name: test_net
