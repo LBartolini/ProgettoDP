@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"log"
 
 	pb "garage/proto"
 
@@ -22,8 +23,11 @@ func (s *Server) GetRemainingMotorcycles(in *pb.PlayerUsername, stream pb.Garage
 	motorcycles, err := s.db.GetRemainingMotorcycles(in.Username)
 
 	if len(motorcycles) == 0 || err != nil {
+		log.Println(err)
 		return err
 	}
+
+	log.Printf("Retrieving motorcycles not owned (%s)", in.Username)
 
 	for _, v := range motorcycles {
 		stream.Send(&pb.MotorcycleInfo{
@@ -50,8 +54,11 @@ func (s *Server) GetUserMotorcycles(in *pb.PlayerUsername, stream pb.Garage_GetU
 	ownerships, err := s.db.GetUserMotorcycles(in.Username)
 
 	if len(ownerships) == 0 || err != nil {
+		log.Println(err)
 		return err
 	}
+
+	log.Printf("Retrieving motorcycles owned (%s)", in.Username)
 
 	for _, v := range ownerships {
 		stream.Send(&pb.OwnershipInfo{
@@ -83,8 +90,11 @@ func (s *Server) GetUserMotorcycleStats(ctx context.Context, in *pb.PlayerMotorc
 	ownership, err := s.db.GetUserMotorcycleStats(in.Username, int(in.MotorcycleId))
 
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
+
+	log.Printf("Motorcyce stats (%s:%d)", in.Username, in.MotorcycleId)
 
 	info := &pb.OwnershipInfo{
 		Username:     ownership.Username,
@@ -112,20 +122,28 @@ func (s *Server) GetUserMotorcycleStats(ctx context.Context, in *pb.PlayerMotorc
 func (s *Server) GetUserMoney(ctx context.Context, in *pb.PlayerUsername) (*pb.UserMoney, error) {
 	money, err := s.db.GetUserMoney(in.Username)
 
+	log.Printf("Retrieving money (%s) with value %d", in.Username, money)
+
 	return &pb.UserMoney{Money: int32(money)}, err
 }
 
 func (s *Server) IncreaseUserMoney(ctx context.Context, in *pb.MoneyIncrease) (*emptypb.Empty, error) {
 	err := s.db.IncreaseUserMoney(in.Username, int(in.Money))
 
+	log.Printf("Increasing money (%s) with value %d", in.Username, in.Money)
+
 	return nil, err
 }
 
 func (s *Server) BuyMotorcycle(ctx context.Context, in *pb.PlayerMotorcycle) (*emptypb.Empty, error) {
+	log.Printf("Buying motorcycle (%s:%d)", in.Username, in.MotorcycleId)
+
 	return nil, s.db.BuyMotorcycle(in.Username, int(in.MotorcycleId))
 }
 
 func (s *Server) UpgradeMotorcycle(ctx context.Context, in *pb.PlayerMotorcycle) (*emptypb.Empty, error) {
+	log.Printf("Upgrading motorcycle (%s:%d)", in.Username, in.MotorcycleId)
+
 	return nil, s.db.UpgradeMotorcycle(in.Username, int(in.MotorcycleId))
 }
 

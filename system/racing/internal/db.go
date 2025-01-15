@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -48,6 +49,7 @@ func (s *SQL_DB) StartMatchmaking(username string, stats *MotorcycleStats) (trac
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
+		log.Println(err)
 		return -1, -1, err
 	}
 	defer tx.Rollback()
@@ -69,12 +71,14 @@ func (s *SQL_DB) CompleteRace(track int) ([]RaceResult, error) {
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	defer tx.Rollback()
 
 	rows, err := tx.Query("SELECT PlayerUsername, MotorcycleId, Position, MaxMotorcycles, MotorcycleLevel, MotorcycleName, Trackname, CURRENT_TIMESTAMP AS Time FROM DetailedMatchmaking WHERE TrackId=?", track)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -84,6 +88,7 @@ func (s *SQL_DB) CompleteRace(track int) ([]RaceResult, error) {
 		var result RaceResult
 		err = rows.Scan(&result.Username, &result.MotorcycleId, &result.Position, &result.TotalMotorcycles, &result.MotorcycleLevel, &result.MotorcycleName, &result.TrackName, &result.Time)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 
@@ -91,6 +96,7 @@ func (s *SQL_DB) CompleteRace(track int) ([]RaceResult, error) {
 	}
 
 	if err = rows.Err(); err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -98,11 +104,13 @@ func (s *SQL_DB) CompleteRace(track int) ([]RaceResult, error) {
 
 	_, err = tx.Exec("INSERT INTO History (Position, TotalMotorcycles, PlayerUsername, TrackName, MotorcycleName, MotorcycleLevel) SELECT Position, MaxMotorcycles, PlayerUsername, TrackName, MotorcycleName, MotorcycleLevel FROM DetailedMatchmaking WHERE TrackId=?", track)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
 	_, err = tx.Exec("DELETE FROM Matchmaking WHERE TrackId=?", track)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -120,6 +128,7 @@ func (s *SQL_DB) CheckIsRacing(username string, MotorcycleId int) (track string,
 func (s *SQL_DB) GetHistory(username string) ([]RaceResult, error) {
 	rows, err := s.db.Query("SELECT Position, TotalMotorcycles, PlayerUsername, TrackName, MotorcycleName, MotorcycleLevel, Time FROM History WHERE PlayerUsername=? ORDER BY RaceId DESC", username)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -129,6 +138,7 @@ func (s *SQL_DB) GetHistory(username string) ([]RaceResult, error) {
 		var result RaceResult
 		err = rows.Scan(&result.Position, &result.TotalMotorcycles, &result.Username, &result.TrackName, &result.MotorcycleName, &result.MotorcycleLevel, &result.Time)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 
@@ -136,6 +146,7 @@ func (s *SQL_DB) GetHistory(username string) ([]RaceResult, error) {
 	}
 
 	if err = rows.Err(); err != nil {
+		log.Println(err)
 		return nil, err
 	}
 

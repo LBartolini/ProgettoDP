@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"errors"
+	"log"
 
 	pb "leaderboard/proto"
 
@@ -26,6 +27,8 @@ func (s *Server) GetFullLeaderboard(_ *emptypb.Empty, stream pb.Leaderboard_GetF
 		return errors.New("no user in leaderboard")
 	}
 
+	log.Printf("Retrieving leaderboard")
+
 	for i := 0; i < len(leaderboard); i++ {
 		stream.Send(&pb.LeaderboardPosition{
 			Username: leaderboard[i].username,
@@ -41,13 +44,18 @@ func (s *Server) GetPlayer(ctx context.Context, in *pb.PlayerUsername) (*pb.Lead
 	user, err := s.db.GetUserInfo(in.Username)
 
 	if err != nil || user == nil {
+		log.Println(err)
 		return nil, err
 	}
+
+	log.Printf("Retrieving position (%s)", in.Username)
 
 	return &pb.LeaderboardPosition{Username: user.username, Position: user.position, Points: user.points}, nil
 }
 
 func (s *Server) AddPoints(ctx context.Context, in *pb.PointIncrement) (*emptypb.Empty, error) {
+	log.Printf("Adding points (%s) with value %d", in.Username, in.Points)
+
 	return nil, s.db.IncrementPoints(in.Username, int(in.Points))
 }
 

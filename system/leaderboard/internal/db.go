@@ -2,6 +2,7 @@ package internal
 
 import (
 	"database/sql"
+	"log"
 )
 
 type LeaderboardInfo struct {
@@ -27,6 +28,7 @@ func NewSQL_DB(conn *sql.DB) *SQL_DB {
 func (s *SQL_DB) GetLeaderboard() []LeaderboardInfo {
 	rows, err := s.db.Query("SELECT * FROM RankedUsers ORDER BY Position ASC")
 	if err != nil {
+		log.Println(err)
 		return nil
 	}
 	defer rows.Close()
@@ -36,12 +38,14 @@ func (s *SQL_DB) GetLeaderboard() []LeaderboardInfo {
 	for rows.Next() {
 		var row LeaderboardInfo
 		if err := rows.Scan(&row.username, &row.points, &row.position); err != nil {
+			log.Println(err)
 			return nil
 		}
 		info = append(info, row)
 	}
 
 	if err := rows.Err(); err != nil {
+		log.Println(err)
 		return nil
 	}
 
@@ -52,6 +56,7 @@ func (s *SQL_DB) GetUserInfo(username string) (*LeaderboardInfo, error) {
 	stmt, err := s.db.Prepare("SELECT Username, Points, Position FROM RankedUsers WHERE Username=?")
 
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -64,6 +69,7 @@ func (s *SQL_DB) GetUserInfo(username string) (*LeaderboardInfo, error) {
 func (s *SQL_DB) IncrementPoints(username string, points int) error {
 	stmt, err := s.db.Prepare("INSERT INTO Users VALUES (?, ?) ON DUPLICATE KEY UPDATE Points = Points + VALUES(Points)")
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	defer stmt.Close()

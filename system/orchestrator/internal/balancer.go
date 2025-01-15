@@ -67,7 +67,7 @@ func (lb *RandomLoadBalancer) getService(name string) *grpc.ClientConn {
 			conn = temp
 			break
 		} else {
-			log.Printf("Balancer removing service %s not alive", name)
+			log.Printf("Balancer removing service, %s not alive", name)
 			lb.services[name] = removeAtIndex(lb.services[name], index)
 			temp.Close()
 		}

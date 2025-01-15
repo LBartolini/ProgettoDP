@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"time"
 )
 
@@ -62,6 +63,7 @@ func NewSQL_DB(conn *sql.DB) *SQL_DB {
 func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
 	rows, err := s.db.Query("SELECT * FROM DetailedOwnership WHERE Username=?", username)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -74,12 +76,14 @@ func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
 			&row.Name, &row.PriceToBuy, &row.PriceToUpgrade, &row.MaxLevel, &row.Engine, &row.EngineIncrement,
 			&row.Agility, &row.AgilityIncrement, &row.Brakes, &row.BrakesIncrement, &row.Aerodynamics, &row.AerodynamicsIncrement)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 		owned = append(owned, &row)
 	}
 
 	if err := rows.Err(); err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -93,6 +97,7 @@ func (s *SQL_DB) GetUserMotorcycleStats(username string, MotorcycleId int) (*Own
 		&owned.Name, &owned.PriceToBuy, &owned.PriceToUpgrade, &owned.MaxLevel, &owned.Engine, &owned.EngineIncrement,
 		&owned.Agility, &owned.AgilityIncrement, &owned.Brakes, &owned.BrakesIncrement, &owned.Aerodynamics, &owned.AerodynamicsIncrement)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -102,6 +107,7 @@ func (s *SQL_DB) GetUserMotorcycleStats(username string, MotorcycleId int) (*Own
 func (s *SQL_DB) GetRemainingMotorcycles(username string) ([]*Motorcycle, error) {
 	rows, err := s.db.Query("SELECT * FROM Motorcycles M WHERE M.Id NOT IN (SELECT O.MotorcycleId FROM Owners O WHERE O.Username=?)", username)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -113,12 +119,14 @@ func (s *SQL_DB) GetRemainingMotorcycles(username string) ([]*Motorcycle, error)
 		err := rows.Scan(&row.Id, &row.Name, &row.PriceToBuy, &row.PriceToUpgrade, &row.MaxLevel, &row.Engine, &row.EngineIncrement,
 			&row.Agility, &row.AgilityIncrement, &row.Brakes, &row.BrakesIncrement, &row.Aerodynamics, &row.AerodynamicsIncrement)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 		not_owned = append(not_owned, &row)
 	}
 
 	if err := rows.Err(); err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -150,6 +158,7 @@ func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	defer tx.Rollback()
@@ -157,12 +166,14 @@ func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {
 	var price int
 	err = tx.QueryRow("SELECT PriceToBuy FROM Motorcycles WHERE Id=?", MotorcycleId).Scan(&price)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
 	var money int
 	err = tx.QueryRow("SELECT Money FROM Users WHERE Username=?", username).Scan(&money)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -172,11 +183,13 @@ func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {
 
 	_, err = tx.Exec("INSERT INTO Owners (Username, MotorcycleId) VALUES (?, ?)", username, MotorcycleId)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
 	_, err = tx.Exec("UPDATE Users SET Money=Money-? WHERE Username=?", price, username)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -189,6 +202,7 @@ func (s *SQL_DB) UpgradeMotorcycle(username string, MotorcycleId int) error {
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	defer tx.Rollback()
@@ -196,12 +210,14 @@ func (s *SQL_DB) UpgradeMotorcycle(username string, MotorcycleId int) error {
 	var price int
 	err = tx.QueryRow("SELECT PriceToUpgrade FROM Motorcycles WHERE Id=?", MotorcycleId).Scan(&price)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
 	var money int
 	err = tx.QueryRow("SELECT Money FROM Users WHERE Username=?", username).Scan(&money)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -211,11 +227,13 @@ func (s *SQL_DB) UpgradeMotorcycle(username string, MotorcycleId int) error {
 
 	_, err = tx.Exec("UPDATE Owners SET Level=Level+1 WHERE Username=? AND MotorcycleId=?", username, MotorcycleId)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
 	_, err = tx.Exec("UPDATE Users SET Money=Money-? WHERE Username=?", price, username)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 

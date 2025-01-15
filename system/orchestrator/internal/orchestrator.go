@@ -235,6 +235,7 @@ func (o *Orchestrator) GetUserMotorcycles(username string) ([]*services.Ownershi
 
 	owned, err := services.NewGarageService(garage_conn).GarageGetUserMotorcycles(username)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
