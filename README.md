@@ -16,9 +16,7 @@ Motorcycle Manager is an online game that allows the users to register in the sy
 
 ## Steps to Run
 
-- make update_proto (compile protobuf definitions)
-
-- make build (build containers)
+- make build (build containers and compile protobuf)
 
 - make up (or make upd for detached version)
 
@@ -33,8 +31,6 @@ Motorcycle Manager is an online game that allows the users to register in the sy
 - Matteo:abcde
 
 ## Steps for running Tests
-
-- make update_proto (compile protobuf definitions)
 
 - (make build_test already performed when using *make test*)
 

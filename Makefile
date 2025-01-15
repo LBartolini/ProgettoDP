@@ -15,7 +15,7 @@ endif
 
 #### RUN ####
 
-build:
+build: update_proto
 	docker compose --profile run $(foreach module,$(system_modules),-f system/$(module).yml) build $(services)
 
 up:
@@ -32,7 +32,7 @@ down:
 
 #### TEST ####
 
-build_test: down_test
+build_test: down_test update_proto
 	docker compose --profile test $(foreach module,$(system_modules),-f system/$(module).yml) build $(foreach service,$(services), test_$(service))
 
 test: build_test
