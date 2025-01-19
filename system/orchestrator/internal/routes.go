@@ -10,10 +10,12 @@ import (
 )
 
 func isLoggedIn(c *gin.Context) bool {
+	// user is logged if username key is in session
 	return sessions.Default(c).Get("username") != nil
 }
 
 func Authorized(c *gin.Context) {
+	// Handle that checks if the user is authorized
 	if !isLoggedIn(c) {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
@@ -45,6 +47,7 @@ func (r *MyRoutes) LoginRoute(c *gin.Context) {
 	res, err := r.orchestrator.Login(username, password)
 
 	if res && err == nil {
+		// if login is successful, save username in session
 		session.Set("username", username)
 		session.Save()
 		c.Redirect(http.StatusFound, "/private")
@@ -61,6 +64,7 @@ func (r *MyRoutes) RegisterRoute(c *gin.Context) {
 	res, err := r.orchestrator.Register(username, password, email, phone)
 
 	if res && err == nil {
+		// if registration is successful, save username in session
 		session.Set("username", username)
 		session.Save()
 		c.Redirect(http.StatusFound, "/private")
@@ -81,6 +85,7 @@ func (r *MyRoutes) LogoutRoute(c *gin.Context) {
 
 func (r *MyRoutes) HomeRoute(c *gin.Context) {
 	username := sessions.Default(c).Get("username").(string)
+
 	info, err := r.orchestrator.GetLeaderboardInfo(username)
 
 	points := 0

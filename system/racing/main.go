@@ -21,12 +21,14 @@ import (
 )
 
 func main() {
+	// Listener for Service
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("SERVICE_PORT")))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	log.Printf("server listening at %v", lis.Addr())
 
+	// Database connection for Racing DB
 	db, err := sql.Open("mysql", "root:admin@tcp(racing_db:3306)/Racing?parseTime=true")
 	if err != nil {
 		log.Fatalf("failed to connect to db: %s", err)
@@ -36,14 +38,17 @@ func main() {
 		log.Fatalf("error pinging database: %v", err)
 	}
 
+	// Connecting with Orchestrator
 	log.Printf("Trying to connect to Orchestrator")
 	conn, err := grpc.NewClient(fmt.Sprintf("orchestrator:%s", os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	for err != nil {
+		// Wait if unable to connect to orchestrator
 		log.Print(err.Error())
 		time.Sleep(500 * time.Millisecond)
 		conn, err = grpc.NewClient(fmt.Sprintf("orchestrator:%s", os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
+	// Creating gRPC server
 	s := grpc.NewServer()
 	server := internal.NewServer(internal.NewSQL_DB(db), conn)
 	pb.RegisterRacingServer(s, server)
@@ -61,8 +66,11 @@ func registerToOrchestrator(conn *grpc.ClientConn) {
 	c := pb.NewOrchestratorClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
+
+	// Call to registration of the service
 	_, err := c.RegisterRacing(ctx, nil)
 	for err != nil {
+		// Wait if errors during registration
 		log.Print(err.Error())
 		time.Sleep(500 * time.Millisecond)
 		_, err = c.RegisterRacing(ctx, nil)

@@ -52,6 +52,7 @@ type GarageDB interface {
 	UpgradeMotorcycle(username string, MotorcycleId int) error
 }
 
+// Implementation for an SQL Database
 type SQL_DB struct {
 	db *sql.DB
 }
@@ -61,6 +62,8 @@ func NewSQL_DB(conn *sql.DB) *SQL_DB {
 }
 
 func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
+	// Retrieve motorcycles owned by user
+
 	rows, err := s.db.Query("SELECT * FROM DetailedOwnership WHERE Username=?", username)
 	if err != nil {
 		log.Println(err)
@@ -91,6 +94,8 @@ func (s *SQL_DB) GetUserMotorcycles(username string) ([]*Ownership, error) {
 }
 
 func (s *SQL_DB) GetUserMotorcycleStats(username string, MotorcycleId int) (*Ownership, error) {
+	// Get stats of specific motorcycle
+
 	row := s.db.QueryRow("SELECT * FROM DetailedOwnership WHERE Username=? AND MotorcycleId=?", username, MotorcycleId)
 	var owned Ownership
 	err := row.Scan(&owned.Username, &owned.MotorcycleId, &owned.Level,
@@ -105,6 +110,8 @@ func (s *SQL_DB) GetUserMotorcycleStats(username string, MotorcycleId int) (*Own
 }
 
 func (s *SQL_DB) GetRemainingMotorcycles(username string) ([]*Motorcycle, error) {
+	// Retrieve motorcycle not owned
+
 	rows, err := s.db.Query("SELECT * FROM Motorcycles M WHERE M.Id NOT IN (SELECT O.MotorcycleId FROM Owners O WHERE O.Username=?)", username)
 	if err != nil {
 		log.Println(err)
@@ -143,6 +150,8 @@ func (s *SQL_DB) GetUserMoney(username string) (int, error) {
 }
 
 func (s *SQL_DB) IncreaseUserMoney(username string, value int) error {
+	// Increase money, used also for registration setting value=0
+
 	if value < 0 {
 		return errors.New("increase value can not be negative")
 	}
@@ -153,9 +162,12 @@ func (s *SQL_DB) IncreaseUserMoney(username string, value int) error {
 }
 
 func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {
+	// Buy motorcycle
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	// Begin transaction, if errors happen during execution the transaction is rolled back
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		log.Println(err)
@@ -177,6 +189,7 @@ func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {
 		return err
 	}
 
+	// Check if user can pay the price
 	if money < price {
 		return errors.New("not enough money to perform payment")
 	}
@@ -187,6 +200,7 @@ func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {
 		return err
 	}
 
+	// Subtract price from money of user
 	_, err = tx.Exec("UPDATE Users SET Money=Money-? WHERE Username=?", price, username)
 	if err != nil {
 		log.Println(err)
@@ -197,6 +211,8 @@ func (s *SQL_DB) BuyMotorcycle(username string, MotorcycleId int) error {
 }
 
 func (s *SQL_DB) UpgradeMotorcycle(username string, MotorcycleId int) error {
+	// Upgrade motorcycle (similar behaviour of buying)
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

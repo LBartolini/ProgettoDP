@@ -75,6 +75,7 @@ func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*
 
 	log.Printf("Starting matchmaking (%s:%d)", in.Username, in.MotorcycleId)
 
+	// complete race since no motorcycles are required to join the race
 	if left == 0 {
 		results, err := s.db.CompleteRace(track)
 
@@ -89,6 +90,7 @@ func (s *Server) StartMatchmaking(ctx context.Context, in *pb.RaceMotorcycle) (*
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
+		// Notify to Orchestrator the results
 		stream, err := c.NotifyEndRace(ctx)
 		if err != nil {
 			log.Println(err)

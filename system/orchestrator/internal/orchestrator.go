@@ -27,7 +27,16 @@ func NewOrchestrator(balancer LoadBalancer) *Orchestrator {
 	return &Orchestrator{balancer: balancer}
 }
 
+func (o *Orchestrator) computeAfterRace(position int, total int, first int, last int) int {
+	// Utility function that computes the line that goes from the point (1, first) to (total, last)
+
+	m := (last - first) / (total - 1)
+	return int(m*(position-1) + first)
+}
+
 func getGrpcClientFromContext(ctx context.Context) (*grpc.ClientConn, error) {
+	// Utility function to obtain connection from context
+
 	peerInfo, ok := peer.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("unable to get peer information from context")
@@ -36,6 +45,8 @@ func getGrpcClientFromContext(ctx context.Context) (*grpc.ClientConn, error) {
 	address := strings.Split(peerInfo.Addr.String(), ":")[0]
 	return grpc.NewClient(fmt.Sprintf("%s:%s", address, os.Getenv("SERVICE_PORT")), grpc.WithTransportCredentials(insecure.NewCredentials()))
 }
+
+////////////////////// gRPC Server section
 
 func (o *Orchestrator) RegisterAuth(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	client, err := getGrpcClientFromContext(ctx)
@@ -90,6 +101,8 @@ func (o *Orchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*e
 }
 
 func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer) error {
+	// Used by Racing service to notify the end of a race by streaming results
+
 	for {
 		race_result, err := stream.Recv()
 		if err == io.EOF {
@@ -110,6 +123,8 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		money_win, _ := strconv.Atoi(os.Getenv("MONEY_WIN"))
 		money_last, _ := strconv.Atoi(os.Getenv("MONEY_LAST"))
 		increase := o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), money_win, money_last)
+
+		// Give money to user based on position in race
 		err = services.NewGarageService(garage_conn).GarageIncreaseUserMoney(race_result.Username, increase)
 		if err != nil {
 			log.Println(err)
@@ -127,6 +142,8 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		points_win, _ := strconv.Atoi(os.Getenv("POINTS_WIN"))
 		points_last, _ := strconv.Atoi(os.Getenv("POINTS_LAST"))
 		increase = o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), points_win, points_last)
+
+		// Give points to user based on position in race
 		err = services.NewLeaderboardService(leaderboard_conn).LeaderboardAddPoints(race_result.Username, increase)
 		if err != nil {
 			log.Println(err)
@@ -136,7 +153,7 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 	}
 }
 
-//////////////////////
+////////////////////// Orchestrator section
 
 func (o *Orchestrator) Login(username string, password string) (res bool, e error) {
 	conn := o.balancer.GetAuth()
@@ -145,6 +162,7 @@ func (o *Orchestrator) Login(username string, password string) (res bool, e erro
 		return false, errors.New("unable to connect to Auth Service")
 	}
 
+	// Proxy
 	result, err := services.NewAuthService(conn).AuthLogin(username, password)
 
 	log.Printf("Login of %s result %t", username, result)
@@ -166,7 +184,7 @@ func (o *Orchestrator) Register(username string, password string, email string, 
 	}
 	log.Printf("Auth Register of %s result %t", username, register_result)
 
-	// Register in Leaderboard Service
+	// Register in Leaderboard Service (giving startin points)
 	leaderboard_conn := o.balancer.GetLeaderboard()
 
 	if leaderboard_conn == nil {
@@ -179,7 +197,7 @@ func (o *Orchestrator) Register(username string, password string, email string, 
 		return false, err
 	}
 
-	// Register in Garage Service
+	// Register in Garage Service (giving starting money)
 	garage_conn := o.balancer.GetGarage()
 
 	if garage_conn == nil {
@@ -203,6 +221,7 @@ func (o *Orchestrator) GetLeaderboardInfo(username string) (*services.Leaderboar
 		return nil, errors.New("unable to connect to Leaderboard Service")
 	}
 
+	// Proxy
 	return services.NewLeaderboardService(conn).LeaderboardGetPlayer(username)
 }
 
@@ -213,6 +232,7 @@ func (o *Orchestrator) GetFullLeaderboard() ([]*services.LeaderboardPosition, er
 		return nil, errors.New("unable to connect to Leaderboard Service")
 	}
 
+	// Proxy
 	return services.NewLeaderboardService(conn).LeaderboardGetFullLeaderboard()
 }
 
@@ -223,6 +243,7 @@ func (o *Orchestrator) GetRemainingMotorcycles(username string) ([]*services.Mot
 		return nil, errors.New("unable to connect to Racing Service")
 	}
 
+	// Proxy
 	return services.NewGarageService(garage_conn).GarageGetRemainingMotorcycles(username)
 }
 
@@ -246,6 +267,7 @@ func (o *Orchestrator) GetUserMotorcycles(username string) ([]*services.Ownershi
 	}
 
 	for _, v := range owned {
+		// Add information regarding racing to each motorcycle
 		if status, err := services.NewRacingService(racing_conn).RacingCheckIsRacing(username, v.Motorcycle.Id); err == nil {
 			v.RacingStatus = status
 		}
@@ -261,6 +283,7 @@ func (o *Orchestrator) GetUserMoney(username string) (int, error) {
 		return 0, errors.New("unable to connect to Racing Service")
 	}
 
+	// Proxy
 	return services.NewGarageService(garage_conn).GarageGetUserMoney(username)
 }
 
@@ -271,6 +294,7 @@ func (o *Orchestrator) BuyMotorcycle(username string, MotorcycleId int) error {
 		return errors.New("unable to connect to Racing Service")
 	}
 
+	// Proxy
 	return services.NewGarageService(garage_conn).GarageBuyMotorcycle(username, MotorcycleId)
 }
 
@@ -281,14 +305,8 @@ func (o *Orchestrator) UpgradeMotorcycle(username string, MotorcycleId int) erro
 		return errors.New("unable to connect to Racing Service")
 	}
 
+	// Proxy
 	return services.NewGarageService(garage_conn).GarageUpgradeMotorcycle(username, MotorcycleId)
-}
-
-func (o *Orchestrator) computeAfterRace(position int, total int, first int, last int) int {
-	// line that goes from the point (1, first) to (total, last)
-
-	m := (last - first) / (total - 1)
-	return int(m*(position-1) + first)
 }
 
 func (o *Orchestrator) StartMatchmaking(username string, MotorcycleId int) error {
@@ -298,6 +316,7 @@ func (o *Orchestrator) StartMatchmaking(username string, MotorcycleId int) error
 		return errors.New("unable to connect to Racing Service")
 	}
 
+	// Get stats from garage
 	stats, err := services.NewGarageService(garage_conn).GarageGetUserMotorcycleStats(username, MotorcycleId)
 	if err != nil {
 		log.Println(err)
@@ -310,6 +329,7 @@ func (o *Orchestrator) StartMatchmaking(username string, MotorcycleId int) error
 		return errors.New("unable to connect to Racing Service")
 	}
 
+	// Start matchmaking sending stats of motorcycle
 	return services.NewRacingService(racing_conn).RacingStartMatchmaking(username, stats)
 }
 
@@ -320,5 +340,6 @@ func (o *Orchestrator) GetHistory(username string) ([]*services.RaceResult, erro
 		return nil, errors.New("unable to connect to Racing Service")
 	}
 
+	// Proxy
 	return services.NewRacingService(conn).RacingGetHistory(username)
 }

@@ -35,6 +35,7 @@ type RacingDB interface {
 	GetHistory(username string) ([]RaceResult, error)
 }
 
+// Implementation for an SQL Database
 type SQL_DB struct {
 	db *sql.DB
 }
@@ -47,6 +48,8 @@ func (s *SQL_DB) StartMatchmaking(username string, stats *MotorcycleStats) (trac
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	// Begin transaction to start matchmaking
+	// steps: select random track, insert motorcycle and compute free slots remained
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		log.Println(err)
@@ -66,9 +69,13 @@ func (s *SQL_DB) StartMatchmaking(username string, stats *MotorcycleStats) (trac
 }
 
 func (s *SQL_DB) CompleteRace(track int) ([]RaceResult, error) {
+	// Complete race on specific track
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	// Begin transaction
+	// steps: select results computing power for each participant, insert results into history, clean matchmaking from that track
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		log.Println(err)
@@ -118,6 +125,8 @@ func (s *SQL_DB) CompleteRace(track int) ([]RaceResult, error) {
 }
 
 func (s *SQL_DB) CheckIsRacing(username string, MotorcycleId int) (track string, e error) {
+	// Check if motorcycle of user is racing and get trackname
+
 	track = ""
 	row := s.db.QueryRow("SELECT TrackName FROM DetailedMatchmaking WHERE PlayerUsername=? AND MotorcycleId=?", username, MotorcycleId)
 	e = row.Scan(&track)
@@ -126,6 +135,8 @@ func (s *SQL_DB) CheckIsRacing(username string, MotorcycleId int) (track string,
 }
 
 func (s *SQL_DB) GetHistory(username string) ([]RaceResult, error) {
+	// Retrieve history of selected user
+
 	rows, err := s.db.Query("SELECT Position, TotalMotorcycles, PlayerUsername, TrackName, MotorcycleName, MotorcycleLevel, Time FROM History WHERE PlayerUsername=? ORDER BY RaceId DESC", username)
 	if err != nil {
 		log.Println(err)

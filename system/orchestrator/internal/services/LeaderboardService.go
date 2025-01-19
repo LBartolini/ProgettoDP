@@ -23,6 +23,7 @@ type Leaderboard interface {
 	LeaderboardGetFullLeaderboard() ([]*LeaderboardPosition, error)
 }
 
+// gRPC implementation of Leaderboard interface
 type LeaderboardService struct {
 	conn *grpc.ClientConn
 }

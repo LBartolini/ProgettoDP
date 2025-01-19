@@ -32,6 +32,7 @@ type Racing interface {
 	RacingGetHistory(username string) ([]*RaceResult, error)
 }
 
+// gRPC implementation of Racing interface
 type RacingService struct {
 	conn *grpc.ClientConn
 }

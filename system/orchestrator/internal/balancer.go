@@ -28,6 +28,7 @@ type LoadBalancer interface {
 	testConnection(*grpc.ClientConn) error
 }
 
+// Implementation of LoadBalancer with random selection
 type RandomLoadBalancer struct {
 	mu       sync.Mutex
 	services map[string][]*grpc.ClientConn
@@ -38,6 +39,8 @@ func NewRandomLoadBalancer() *RandomLoadBalancer {
 }
 
 func (lb *RandomLoadBalancer) registerService(name string, conn *grpc.ClientConn) {
+	// Register service, if it is the first time also create the underlying slice
+
 	lb.mu.Lock()
 	defer lb.mu.Unlock()
 
@@ -48,6 +51,8 @@ func (lb *RandomLoadBalancer) registerService(name string, conn *grpc.ClientConn
 }
 
 func removeAtIndex(slice []*grpc.ClientConn, index int) []*grpc.ClientConn {
+	// Utility function to remove connection at specified index
+
 	if index < 0 || index >= len(slice) {
 		return slice
 	}
@@ -55,6 +60,8 @@ func removeAtIndex(slice []*grpc.ClientConn, index int) []*grpc.ClientConn {
 }
 
 func (lb *RandomLoadBalancer) getService(name string) *grpc.ClientConn {
+	// Retrieve random replica of service
+
 	lb.mu.Lock()
 	defer lb.mu.Unlock()
 	var conn *grpc.ClientConn
@@ -63,10 +70,12 @@ func (lb *RandomLoadBalancer) getService(name string) *grpc.ClientConn {
 		index := rand.IntN(len(lb.services[name]))
 		temp := lb.services[name][index]
 
+		// test connection using StillAlive service
 		if err := lb.testConnection(temp); err == nil {
 			conn = temp
 			break
 		} else {
+			// Selected replica not alive, removing and retrying
 			log.Printf("Balancer removing service, %s not alive", name)
 			lb.services[name] = removeAtIndex(lb.services[name], index)
 			temp.Close()
@@ -113,6 +122,7 @@ func (lb *RandomLoadBalancer) testConnection(conn *grpc.ClientConn) error {
 	ctxAlive, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	// if replica is not alive an error will be raised
 	_, err := c.StillAlive(ctxAlive, nil)
 	return err
 }

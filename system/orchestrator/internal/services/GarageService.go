@@ -43,6 +43,7 @@ type Garage interface {
 	GarageGetUserMotorcycleStats(username string, motorcycle_id int) (*Ownership, error)
 }
 
+// gRPC implementation of Garage interface
 type GarageService struct {
 	conn *grpc.ClientConn
 }

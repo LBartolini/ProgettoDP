@@ -13,6 +13,7 @@ type Auth interface {
 	AuthRegister(username, password, email, phone string) (bool, error)
 }
 
+// gRPC implementation of Auth interface
 type AuthService struct {
 	conn *grpc.ClientConn
 }

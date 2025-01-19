@@ -16,14 +16,18 @@ import (
 )
 
 func main() {
+	// Cookie store using env variable session_key
 	store := sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
 	r := gin.Default()
 	r.Use(sessions.Sessions("session", store))
-	r.LoadHTMLGlob("./templates/*")
+	r.LoadHTMLGlob("./templates/*") // load templates
 
+	// Create and start orchestrator gRPC service
 	orchestrator := internal.NewOrchestrator(internal.NewRandomLoadBalancer())
 	go startOrchestratorService(orchestrator)
+
+	// Handle routes
 	routes := internal.NewMyRoutes(orchestrator)
 
 	r.GET("/", routes.IndexRoute)
@@ -32,6 +36,7 @@ func main() {
 	r.POST("/register", routes.RegisterRoute)
 	r.GET("/leaderboard", routes.LeaderboardRoute)
 
+	// Group of routes that need Authorization
 	private := r.Group("/private")
 	private.Use(internal.Authorized)
 	{
@@ -47,6 +52,7 @@ func main() {
 		private.GET("/history", routes.RaceHistoryRoute)
 	}
 
+	// Run webserver on env web_port
 	r.Run(fmt.Sprintf("0.0.0.0:%s", os.Getenv("WEB_PORT")))
 }
 
@@ -56,6 +62,8 @@ func startOrchestratorService(orchestrator *internal.Orchestrator) {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+
+	// Creation of gRPC Server
 	s := grpc.NewServer()
 	pb.RegisterOrchestratorServer(s, orchestrator)
 	log.Printf("server listening at %v", lis.Addr())

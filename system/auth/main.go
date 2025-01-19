@@ -68,7 +68,7 @@ func registerToOrchestrator() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	// Call to registrationof the service
+	// Call to registration of the service
 	_, err = c.RegisterAuth(ctx, nil)
 	for err != nil {
 		// Wait if errors during registration
