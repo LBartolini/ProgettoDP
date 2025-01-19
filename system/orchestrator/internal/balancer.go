@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// TODO: balancer works with services, orchestrator no longer has to do the work of creating the service from connection
 type LoadBalancer interface {
 	RegisterAuth(conn *grpc.ClientConn)
 	GetAuth() *grpc.ClientConn
