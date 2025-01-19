@@ -34,13 +34,14 @@ type Ownership struct {
 }
 
 type Garage interface {
-	GarageGetUserMoney(username string) (int, error)
-	GarageIncreaseUserMoney(username string, money int) error
-	GarageGetRemainingMotorcycles(username string) ([]*Motorcycle, error)
-	GarageGetUserMotorcycles(username string) ([]*Ownership, error)
-	GarageBuyMotorcycle(username string, motorcycle_id int) error
-	GarageUpgradeMotorcycle(username string, motorcycle_id int) error
-	GarageGetUserMotorcycleStats(username string, motorcycle_id int) (*Ownership, error)
+	StillAlive
+	GetUserMoney(username string) (int, error)
+	IncreaseUserMoney(username string, money int) error
+	GetRemainingMotorcycles(username string) ([]*Motorcycle, error)
+	GetUserMotorcycles(username string) ([]*Ownership, error)
+	BuyMotorcycle(username string, motorcycle_id int) error
+	UpgradeMotorcycle(username string, motorcycle_id int) error
+	GetUserMotorcycleStats(username string, motorcycle_id int) (*Ownership, error)
 }
 
 // gRPC implementation of Garage interface
@@ -52,7 +53,15 @@ func NewGarageService(conn *grpc.ClientConn) *GarageService {
 	return &GarageService{conn: conn}
 }
 
-func (s *GarageService) GarageGetRemainingMotorcycles(username string) ([]*Motorcycle, error) {
+func (s *GarageService) StillAlive() bool {
+	return StillAliveHandle(s.conn)
+}
+
+func (s *GarageService) Close() {
+	s.conn.Close()
+}
+
+func (s *GarageService) GetRemainingMotorcycles(username string) ([]*Motorcycle, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -92,7 +101,7 @@ func (s *GarageService) GarageGetRemainingMotorcycles(username string) ([]*Motor
 	return motorcycles, nil
 }
 
-func (s *GarageService) GarageGetUserMotorcycles(username string) ([]*Ownership, error) {
+func (s *GarageService) GetUserMotorcycles(username string) ([]*Ownership, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -137,7 +146,7 @@ func (s *GarageService) GarageGetUserMotorcycles(username string) ([]*Ownership,
 	return motorcycles, nil
 }
 
-func (s *GarageService) GarageGetUserMotorcycleStats(username string, motorcycle_id int) (*Ownership, error) {
+func (s *GarageService) GetUserMotorcycleStats(username string, motorcycle_id int) (*Ownership, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -168,7 +177,7 @@ func (s *GarageService) GarageGetUserMotorcycleStats(username string, motorcycle
 	return stats, nil
 }
 
-func (s *GarageService) GarageGetUserMoney(username string) (int, error) {
+func (s *GarageService) GetUserMoney(username string) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -180,7 +189,7 @@ func (s *GarageService) GarageGetUserMoney(username string) (int, error) {
 	return int(res.Money), nil
 }
 
-func (s *GarageService) GarageIncreaseUserMoney(username string, money int) error {
+func (s *GarageService) IncreaseUserMoney(username string, money int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -188,7 +197,7 @@ func (s *GarageService) GarageIncreaseUserMoney(username string, money int) erro
 	return err
 }
 
-func (s *GarageService) GarageBuyMotorcycle(username string, motorcycle_id int) error {
+func (s *GarageService) BuyMotorcycle(username string, motorcycle_id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -196,7 +205,7 @@ func (s *GarageService) GarageBuyMotorcycle(username string, motorcycle_id int) 
 	return err
 }
 
-func (s *GarageService) GarageUpgradeMotorcycle(username string, motorcycle_id int) error {
+func (s *GarageService) UpgradeMotorcycle(username string, motorcycle_id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

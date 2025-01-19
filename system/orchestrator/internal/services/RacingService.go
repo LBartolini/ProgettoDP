@@ -27,9 +27,10 @@ type RaceResult struct {
 }
 
 type Racing interface {
-	RacingCheckIsRacing(username string, motorcycle_id int) (*RacingStatus, error)
-	RacingStartMatchmaking(username string, stats *Ownership) error
-	RacingGetHistory(username string) ([]*RaceResult, error)
+	StillAlive
+	CheckIsRacing(username string, motorcycle_id int) (*RacingStatus, error)
+	StartMatchmaking(username string, stats *Ownership) error
+	GetHistory(username string) ([]*RaceResult, error)
 }
 
 // gRPC implementation of Racing interface
@@ -41,7 +42,15 @@ func NewRacingService(conn *grpc.ClientConn) *RacingService {
 	return &RacingService{conn: conn}
 }
 
-func (s *RacingService) RacingStartMatchmaking(username string, stats *Ownership) error {
+func (s *RacingService) StillAlive() bool {
+	return StillAliveHandle(s.conn)
+}
+
+func (s *RacingService) Close() {
+	s.conn.Close()
+}
+
+func (s *RacingService) StartMatchmaking(username string, stats *Ownership) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -58,7 +67,7 @@ func (s *RacingService) RacingStartMatchmaking(username string, stats *Ownership
 	return err
 }
 
-func (s *RacingService) RacingCheckIsRacing(username string, motorcycle_id int) (*RacingStatus, error) {
+func (s *RacingService) CheckIsRacing(username string, motorcycle_id int) (*RacingStatus, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -70,7 +79,7 @@ func (s *RacingService) RacingCheckIsRacing(username string, motorcycle_id int) 
 	return &RacingStatus{Username: username, MotorcycleId: motorcycle_id, Status: status.IsRacing, TrackName: status.TrackName}, nil
 }
 
-func (s *RacingService) RacingGetHistory(username string) ([]*RaceResult, error) {
+func (s *RacingService) GetHistory(username string) ([]*RaceResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

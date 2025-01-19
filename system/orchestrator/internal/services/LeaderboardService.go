@@ -18,9 +18,10 @@ type LeaderboardPosition struct {
 }
 
 type Leaderboard interface {
-	LeaderboardAddPoints(username string, points int) error
-	LeaderboardGetPlayer(username string) (*LeaderboardPosition, error)
-	LeaderboardGetFullLeaderboard() ([]*LeaderboardPosition, error)
+	StillAlive
+	AddPoints(username string, points int) error
+	GetPlayer(username string) (*LeaderboardPosition, error)
+	GetFullLeaderboard() ([]*LeaderboardPosition, error)
 }
 
 // gRPC implementation of Leaderboard interface
@@ -32,7 +33,15 @@ func NewLeaderboardService(conn *grpc.ClientConn) *LeaderboardService {
 	return &LeaderboardService{conn: conn}
 }
 
-func (s *LeaderboardService) LeaderboardGetFullLeaderboard() ([]*LeaderboardPosition, error) {
+func (s *LeaderboardService) StillAlive() bool {
+	return StillAliveHandle(s.conn)
+}
+
+func (s *LeaderboardService) Close() {
+	s.conn.Close()
+}
+
+func (s *LeaderboardService) GetFullLeaderboard() ([]*LeaderboardPosition, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -58,7 +67,7 @@ func (s *LeaderboardService) LeaderboardGetFullLeaderboard() ([]*LeaderboardPosi
 	return leaderboard, nil
 }
 
-func (s *LeaderboardService) LeaderboardGetPlayer(username string) (*LeaderboardPosition, error) {
+func (s *LeaderboardService) GetPlayer(username string) (*LeaderboardPosition, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -69,7 +78,7 @@ func (s *LeaderboardService) LeaderboardGetPlayer(username string) (*Leaderboard
 	return &LeaderboardPosition{Username: pos.Username, Points: int(pos.Points), Position: int(pos.Position)}, nil
 }
 
-func (s *LeaderboardService) LeaderboardAddPoints(username string, points int) error {
+func (s *LeaderboardService) AddPoints(username string, points int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

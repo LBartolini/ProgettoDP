@@ -56,7 +56,7 @@ func (o *Orchestrator) RegisterAuth(ctx context.Context, _ *emptypb.Empty) (*emp
 		return nil, err
 	}
 
-	o.balancer.RegisterAuth(client)
+	o.balancer.RegisterAuth(services.NewAuthService(client))
 
 	return nil, nil
 }
@@ -69,7 +69,7 @@ func (o *Orchestrator) RegisterGarage(ctx context.Context, _ *emptypb.Empty) (*e
 		return nil, err
 	}
 
-	o.balancer.RegisterGarage(client)
+	o.balancer.RegisterGarage(services.NewGarageService(client))
 
 	return nil, nil
 }
@@ -82,7 +82,7 @@ func (o *Orchestrator) RegisterLeaderboard(ctx context.Context, _ *emptypb.Empty
 		return nil, err
 	}
 
-	o.balancer.RegisterLeaderboard(client)
+	o.balancer.RegisterLeaderboard(services.NewLeaderboardService(client))
 
 	return nil, nil
 }
@@ -95,7 +95,7 @@ func (o *Orchestrator) RegisterRacing(ctx context.Context, _ *emptypb.Empty) (*e
 		return nil, err
 	}
 
-	o.balancer.RegisterRacing(client)
+	o.balancer.RegisterRacing(services.NewRacingService(client))
 
 	return nil, nil
 }
@@ -114,18 +114,16 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		}
 
 		// Garage: increase money
-		garage_conn := o.balancer.GetGarage()
-
-		if garage_conn == nil {
-			return errors.New("unable to connect to Racing Service")
-		}
-
 		money_win, _ := strconv.Atoi(os.Getenv("MONEY_WIN"))
 		money_last, _ := strconv.Atoi(os.Getenv("MONEY_LAST"))
 		increase := o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), money_win, money_last)
 
 		// Give money to user based on position in race
-		err = services.NewGarageService(garage_conn).GarageIncreaseUserMoney(race_result.Username, increase)
+		garage := o.balancer.GetGarage()
+		if garage == nil {
+			return errors.New("unable to connect to Garage Service")
+		}
+		err = garage.IncreaseUserMoney(race_result.Username, increase)
 		if err != nil {
 			log.Println(err)
 			return err
@@ -133,9 +131,8 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		log.Printf("Race ended: increase money %s by %d", race_result.Username, increase)
 
 		// Leaderboard: increase points
-		leaderboard_conn := o.balancer.GetLeaderboard()
-
-		if leaderboard_conn == nil {
+		leaderboard := o.balancer.GetLeaderboard()
+		if leaderboard == nil {
 			return errors.New("unable to connect to Leaderboard Service")
 		}
 
@@ -144,7 +141,7 @@ func (o *Orchestrator) NotifyEndRace(stream pb.Orchestrator_NotifyEndRaceServer)
 		increase = o.computeAfterRace(int(race_result.PositionInRace), int(race_result.TotalMotorcycles), points_win, points_last)
 
 		// Give points to user based on position in race
-		err = services.NewLeaderboardService(leaderboard_conn).LeaderboardAddPoints(race_result.Username, increase)
+		err = leaderboard.AddPoints(race_result.Username, increase)
 		if err != nil {
 			log.Println(err)
 			return err
@@ -163,7 +160,7 @@ func (o *Orchestrator) Login(username string, password string) (res bool, e erro
 	}
 
 	// Proxy
-	result, err := services.NewAuthService(conn).AuthLogin(username, password)
+	result, err := conn.Login(username, password)
 
 	log.Printf("Login of %s result %t", username, result)
 	return result, err
@@ -171,13 +168,13 @@ func (o *Orchestrator) Login(username string, password string) (res bool, e erro
 
 func (o *Orchestrator) Register(username string, password string, email string, phone string) (res bool, e error) {
 	// Register in Auth Service
-	auth_conn := o.balancer.GetAuth()
+	auth := o.balancer.GetAuth()
 
-	if auth_conn == nil {
+	if auth == nil {
 		return false, errors.New("unable to connect to Auth Service")
 	}
 
-	register_result, err := services.NewAuthService(auth_conn).AuthRegister(username, password, email, phone)
+	register_result, err := auth.Register(username, password, email, phone)
 	if err != nil {
 		log.Println(err)
 		return false, err
@@ -185,27 +182,27 @@ func (o *Orchestrator) Register(username string, password string, email string, 
 	log.Printf("Auth Register of %s result %t", username, register_result)
 
 	// Register in Leaderboard Service (giving startin points)
-	leaderboard_conn := o.balancer.GetLeaderboard()
+	leaderboard := o.balancer.GetLeaderboard()
 
-	if leaderboard_conn == nil {
+	if leaderboard == nil {
 		return false, errors.New("unable to connect to Leaderboard Service")
 	}
 
-	err = services.NewLeaderboardService(leaderboard_conn).LeaderboardAddPoints(username, 0)
+	err = leaderboard.AddPoints(username, 0)
 	if err != nil {
 		log.Println(err)
 		return false, err
 	}
 
 	// Register in Garage Service (giving starting money)
-	garage_conn := o.balancer.GetGarage()
+	garage := o.balancer.GetGarage()
 
-	if garage_conn == nil {
-		return false, errors.New("unable to connect to Racing Service")
+	if garage == nil {
+		return false, errors.New("unable to connect to Garage Service")
 	}
 
 	start_money, _ := strconv.Atoi(os.Getenv("START_MONEY"))
-	err = services.NewGarageService(garage_conn).GarageIncreaseUserMoney(username, start_money)
+	err = garage.IncreaseUserMoney(username, start_money)
 	if err != nil {
 		log.Println(err)
 		return false, err
@@ -222,7 +219,7 @@ func (o *Orchestrator) GetLeaderboardInfo(username string) (*services.Leaderboar
 	}
 
 	// Proxy
-	return services.NewLeaderboardService(conn).LeaderboardGetPlayer(username)
+	return conn.GetPlayer(username)
 }
 
 func (o *Orchestrator) GetFullLeaderboard() ([]*services.LeaderboardPosition, error) {
@@ -233,28 +230,28 @@ func (o *Orchestrator) GetFullLeaderboard() ([]*services.LeaderboardPosition, er
 	}
 
 	// Proxy
-	return services.NewLeaderboardService(conn).LeaderboardGetFullLeaderboard()
+	return conn.GetFullLeaderboard()
 }
 
 func (o *Orchestrator) GetRemainingMotorcycles(username string) ([]*services.Motorcycle, error) {
 	garage_conn := o.balancer.GetGarage()
 
 	if garage_conn == nil {
-		return nil, errors.New("unable to connect to Racing Service")
+		return nil, errors.New("unable to connect to Garage Service")
 	}
 
 	// Proxy
-	return services.NewGarageService(garage_conn).GarageGetRemainingMotorcycles(username)
+	return garage_conn.GetRemainingMotorcycles(username)
 }
 
 func (o *Orchestrator) GetUserMotorcycles(username string) ([]*services.Ownership, error) {
 	garage_conn := o.balancer.GetGarage()
 
 	if garage_conn == nil {
-		return nil, errors.New("unable to connect to Racing Service")
+		return nil, errors.New("unable to connect to Garage Service")
 	}
 
-	owned, err := services.NewGarageService(garage_conn).GarageGetUserMotorcycles(username)
+	owned, err := garage_conn.GetUserMotorcycles(username)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -268,7 +265,7 @@ func (o *Orchestrator) GetUserMotorcycles(username string) ([]*services.Ownershi
 
 	for _, v := range owned {
 		// Add information regarding racing to each motorcycle
-		if status, err := services.NewRacingService(racing_conn).RacingCheckIsRacing(username, v.Motorcycle.Id); err == nil {
+		if status, err := racing_conn.CheckIsRacing(username, v.Motorcycle.Id); err == nil {
 			v.RacingStatus = status
 		}
 	}
@@ -280,44 +277,44 @@ func (o *Orchestrator) GetUserMoney(username string) (int, error) {
 	garage_conn := o.balancer.GetGarage()
 
 	if garage_conn == nil {
-		return 0, errors.New("unable to connect to Racing Service")
+		return 0, errors.New("unable to connect to Garage Service")
 	}
 
 	// Proxy
-	return services.NewGarageService(garage_conn).GarageGetUserMoney(username)
+	return garage_conn.GetUserMoney(username)
 }
 
 func (o *Orchestrator) BuyMotorcycle(username string, MotorcycleId int) error {
 	garage_conn := o.balancer.GetGarage()
 
 	if garage_conn == nil {
-		return errors.New("unable to connect to Racing Service")
+		return errors.New("unable to connect to Garage Service")
 	}
 
 	// Proxy
-	return services.NewGarageService(garage_conn).GarageBuyMotorcycle(username, MotorcycleId)
+	return garage_conn.BuyMotorcycle(username, MotorcycleId)
 }
 
 func (o *Orchestrator) UpgradeMotorcycle(username string, MotorcycleId int) error {
 	garage_conn := o.balancer.GetGarage()
 
 	if garage_conn == nil {
-		return errors.New("unable to connect to Racing Service")
+		return errors.New("unable to connect to Garage Service")
 	}
 
 	// Proxy
-	return services.NewGarageService(garage_conn).GarageUpgradeMotorcycle(username, MotorcycleId)
+	return garage_conn.UpgradeMotorcycle(username, MotorcycleId)
 }
 
 func (o *Orchestrator) StartMatchmaking(username string, MotorcycleId int) error {
 	garage_conn := o.balancer.GetGarage()
 
 	if garage_conn == nil {
-		return errors.New("unable to connect to Racing Service")
+		return errors.New("unable to connect to Garage Service")
 	}
 
 	// Get stats from garage
-	stats, err := services.NewGarageService(garage_conn).GarageGetUserMotorcycleStats(username, MotorcycleId)
+	stats, err := garage_conn.GetUserMotorcycleStats(username, MotorcycleId)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -330,7 +327,7 @@ func (o *Orchestrator) StartMatchmaking(username string, MotorcycleId int) error
 	}
 
 	// Start matchmaking sending stats of motorcycle
-	return services.NewRacingService(racing_conn).RacingStartMatchmaking(username, stats)
+	return racing_conn.StartMatchmaking(username, stats)
 }
 
 func (o *Orchestrator) GetHistory(username string) ([]*services.RaceResult, error) {
@@ -341,5 +338,5 @@ func (o *Orchestrator) GetHistory(username string) ([]*services.RaceResult, erro
 	}
 
 	// Proxy
-	return services.NewRacingService(conn).RacingGetHistory(username)
+	return conn.GetHistory(username)
 }

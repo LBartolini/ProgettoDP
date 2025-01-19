@@ -9,8 +9,9 @@ import (
 )
 
 type Auth interface {
-	AuthLogin(username string, password string) (bool, error)
-	AuthRegister(username, password, email, phone string) (bool, error)
+	StillAlive
+	Login(username string, password string) (bool, error)
+	Register(username, password, email, phone string) (bool, error)
 }
 
 // gRPC implementation of Auth interface
@@ -22,7 +23,15 @@ func NewAuthService(conn *grpc.ClientConn) *AuthService {
 	return &AuthService{conn: conn}
 }
 
-func (s *AuthService) AuthLogin(username string, password string) (bool, error) {
+func (s *AuthService) StillAlive() bool {
+	return StillAliveHandle(s.conn)
+}
+
+func (s *AuthService) Close() {
+	s.conn.Close()
+}
+
+func (s *AuthService) Login(username string, password string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -34,7 +43,7 @@ func (s *AuthService) AuthLogin(username string, password string) (bool, error) 
 	return res.Result, nil
 }
 
-func (s *AuthService) AuthRegister(username, password, email, phone string) (bool, error) {
+func (s *AuthService) Register(username, password, email, phone string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
